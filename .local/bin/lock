@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # GNOME-style lock screen (Catppuccin Mocha) on top of a smoothly blurred wallpaper:
-#   clock + date, round avatar (~/.face if present), username, password box.
-# Typing feedback: the thin line at the bottom of the box flashes mauve per key,
-# red on backspace, blue while checking, red + "wrong password" on failure.
+#   clock + date, round avatar (~/.face if present), username.
+# Typing feedback: i3lock's ring sits on the avatar's edge and flashes per key
+# (white), red on backspace, blue while checking, red + "wrong password" on failure.
 # (i3lock never draws the typed characters, by design.)
 #
 #   lock            lock now
@@ -17,7 +17,6 @@ FACE="$HOME/.face"
 ICONFONT="$HOME/.local/share/fonts/JetBrainsMonoNerd/JetBrainsMonoNerdFont-Regular.ttf"
 FONT="Ubuntu Sans"
 ICON_USER=$(printf '\xef\x80\x87')        # nf-fa-user (U+F007), as UTF-8 bytes
-ICON_LOCK=$(printf '\xf3\xb0\x8c\xbe')    # nf-md-lock (U+F033E)
 
 # whole X screen size, and the primary monitor geometry (widgets go there)
 root=$(xdpyinfo | awk '/dimensions:/{print $2}')                       # e.g. 3840x1080
@@ -28,10 +27,9 @@ cx=$(( PX + PW / 2 )); cy=$(( PY + PH / 2 ))
 
 # layout (pixels, relative to the primary monitor's center)
 AV_Y=$(( cy - 10 )); AV_R=56             # avatar circle center / radius
-BOX_W=340; BOX_H=46                      # password box
-BOX_X=$(( cx - BOX_W / 2 )); BOX_Y=$(( cy + 110 ))
+RING_W=4                                 # ring thickness (drawn by i3lock-color)
 
-IMG="${XDG_CACHE_HOME:-$HOME/.cache}/lockscreen-v3-${root}-${prim}.png"
+IMG="${XDG_CACHE_HOME:-$HOME/.cache}/lockscreen-v4-${root}-${prim}.png"
 
 build() {
   mkdir -p "$(dirname "$IMG")"
@@ -53,16 +51,11 @@ build() {
       -font "$ICONFONT" -pointsize 200 -fill '#cdd6f4' -gravity center \
       -annotate +0+6 "$ICON_USER" "$tmp/av.png"
   fi
-  convert "$tmp/av.png" -fill none -stroke '#cba6f7' -strokewidth 10 \
-    -draw "circle $R4,$R4 $R4,5" -resize "${d}x${d}" "$tmp/av.png"
+  convert "$tmp/av.png" -resize "${d}x${d}" "$tmp/av.png"
 
-  # 3) avatar + password box (translucent, thin border, lock icon) onto the background
+  # 3) avatar onto the background
   convert "$tmp/bg.png" \
     "$tmp/av.png" -geometry "+$(( cx - AV_R ))+$(( AV_Y - AV_R ))" -composite \
-    -fill '#181825d9' -stroke '#585b70' -strokewidth 1 \
-    -draw "rectangle $BOX_X,$BOX_Y $(( BOX_X + BOX_W )),$(( BOX_Y + BOX_H ))" \
-    -stroke none -fill '#7f849c' -font "$ICONFONT" -pointsize 18 -gravity NorthWest \
-    -annotate "+$(( BOX_X + 14 ))+$(( BOX_Y + 11 ))" "$ICON_LOCK" \
     "$IMG"
   rm -rf "$tmp"
 }
@@ -87,7 +80,7 @@ DPI=$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/{printf "%d", $2}')
 { [ -z "$DPI" ] || [ "$DPI" -le 0 ]; } && DPI=96
 s() { echo $(( $1 * 96 / DPI )); }
 
-T='cdd6f4ff'; DIM='a6adc8ff'; MAUVE='cba6f7ff'; RED='f38ba8ff'; BLUE='89b4faff'; LINE='585b70ff'
+T='cdd6f4ff'; DIM='a6adc8ff'; MAUVE='cba6f7ff'; PINK='f5c2e7ff'; RED='f38ba8ff'; BLUE='89b4faff'; NONE='00000000'
 exec "$I3LOCK_COLOR" --nofork --ignore-empty-password \
   --image="$IMG" \
   --pass-media-keys --pass-volume-keys --pass-screen-keys \
@@ -101,15 +94,15 @@ exec "$I3LOCK_COLOR" --nofork --ignore-empty-password \
   \
   --greeter-text="$USER" --greeter-pos="$(s $cx):$(s $(( cy + 82 )))" \
   \
-  --bar-indicator --bar-orientation=horizontal \
-  --bar-pos="$(s $(( BOX_X + 9 ))):$(s $(( BOX_Y + BOX_H + 5 )))" \
-  --bar-total-width=$(s $(( BOX_W + 2 ))) --bar-count=1 \
-  --bar-base-width=$(s 2) --bar-max-height=$(s 2) --bar-step=1 --bar-periodic-step=0 \
-  --bar-color=$LINE --keyhl-color=$MAUVE --bshl-color=$RED \
+  --indicator --ind-pos="$(s $(( cx + 11 ))):$(s $(( AV_Y + 5 )))" \
+  --radius=$(s $(( AV_R + RING_W / 2 ))) --ring-width=$(s $RING_W) \
+  --ring-color=$MAUVE --keyhl-color=$T --bshl-color=$RED \
   --ringver-color=$BLUE --ringwrong-color=$RED \
+  --inside-color=$NONE --insidever-color=$NONE --insidewrong-color=$NONE \
+  --line-color=$NONE --separator-color=$NONE \
   \
   --noinput-text="" --lock-text="" --lockfailed-text="lock failed" \
   --verif-text="checking…" --wrong-text="wrong password" \
   --verif-color=$DIM --wrong-color=$RED \
-  --verif-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 30 )))" --wrong-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 30 )))" \
-  --show-failed-attempts --modif-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 56 )))" --modif-color=$DIM
+  --verif-pos="$(s $cx):$(s $(( cy + 122 )))" --wrong-pos="$(s $cx):$(s $(( cy + 122 )))" \
+  --show-failed-attempts --modif-pos="$(s $cx):$(s $(( cy + 148 )))" --modif-color=$DIM

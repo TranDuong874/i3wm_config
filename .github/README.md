@@ -22,7 +22,7 @@ I hit the first time (they are all collected in [Troubleshooting](#13-troublesho
 | File manager (terminal) | yazi |
 | Screenshots | flameshot |
 | Monitor layouts | autorandr |
-| Lock screen | i3lock-color (built from source) + xss-lock: GNOME-style clock, avatar, username, password box |
+| Lock screen | i3lock-color (built from source) + xss-lock: GNOME-style clock, avatar with flashing ring, username |
 | Wi-Fi TUI | nmtui (themed through newt colors) |
 | GTK apps | Yaru-magenta-dark + Mocha color overrides |
 
@@ -357,7 +357,7 @@ Replace `eDP` / `DP-1-0` with your names from `xrandr`. Notes:
 | `notify-send test hello` | Mocha notification with icon, top-right |
 | `Alt+n` | yazi with icons and Mocha colors |
 | Touchpad | tap = click, two-finger scroll in "natural" direction |
-| `Alt+Shift+e` → `l` | lock screen: clock, date, avatar, username, password box (its bottom line flashes mauve while typing, red "wrong password") |
+| `Alt+Shift+e` → `l` | lock screen: clock, date, avatar, username; the avatar's mauve ring flashes white per key, blue while checking, red + "wrong password" on failure |
 | `Alt+p` → `b` / `l` / `e` | monitor layouts switch; bar + wallpaper redraw; notification |
 
 Validate the i3 config any time with:
@@ -671,10 +671,12 @@ without re-login: `setsid xss-lock --transfer-sleep-lock -- ~/.local/bin/lock &`
 `~/.local/bin/i3lock-color` is missing, so `lock` fell back to plain i3lock → build it
 ([step 6](#i3lock-color-the-gnome-style-lock-screen)).
 
-### Lock screen: text and bars in the wrong place
+### Lock screen: text or ring in the wrong place
 i3lock-color multiplies every position by `dpi / 96` (from `Xft.dpi`, else the X
 screen's physical DPI). `lock` divides its coordinates by the same factor, so it lines up
 with the background on any DPI. Check what X reports: `xdpyinfo | grep resolution`.
+The ring also lands ~11 px left / 5 px up of the given `--ind-pos`, so `lock` adds that
+(`cx + 11`, `AV_Y + 5`). If you change the avatar size, re-check it in Xephyr.
 
 ### Lock screen blur looks blocky / pixelated
 Shrinking and re-enlarging with `-scale` copies pixels → visible squares. `lock` uses
@@ -686,9 +688,9 @@ Nerd Font icons are private-use characters and can get lost when a file is writt
 some tools. `lock` defines them as UTF-8 bytes (`printf '\xef\x80\x87'`), which survive.
 
 ### Why no dots for typed characters?
-i3lock/i3lock-color never draw the typed characters (security design). Instead the thin
-line at the bottom of the box flashes mauve per key (grey at rest), red on backspace,
-blue while checking, and "wrong password" appears in red under the box.
+i3lock/i3lock-color never draw the typed characters (security design). Instead the
+ring around the avatar (i3lock's normal indicator, restyled) flashes a white segment per
+key, red on backspace, turns blue while checking, and red + "wrong password" on failure.
 
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
@@ -761,7 +763,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock (calls `~/.local/bin/lock` directly), logout, suspend, reboot, shutdown |
-| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v3-*.png`), then runs `i3lock-color` with clock, date, username and a typing line |
+| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v4-*.png`), then runs `i3lock-color` with clock, date, username and the flashing ring on the avatar's edge |
 | `~/.face` (not tracked) | optional square photo used as the lock screen avatar |
 | `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
