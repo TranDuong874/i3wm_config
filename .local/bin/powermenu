@@ -17,7 +17,7 @@ case "${1:-toggle}" in
       eww open powermenu && i3-msg -q mode power
     fi ;;
   close)    close ;;
-  lock)     close; loginctl lock-session ;;
+  lock)     close; ~/.local/bin/lock & ;;   # direct; does not depend on xss-lock running
   logout)   close; i3-msg -q exit ;;
   suspend)  close; systemctl suspend ;;
   reboot)   close; systemctl reboot ;;

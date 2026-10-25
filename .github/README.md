@@ -633,6 +633,13 @@ flip: once LAN was 20100 vs Wi-Fi 20600 (LAN used), later Wi-Fi was 600 vs LAN 2
 The polybar network module only shows **wireless** (`interface-type = wireless`), so it
 displays the Wi-Fi name even when traffic goes over LAN.
 
+### Power menu "lock" does nothing
+`loginctl lock-session` only *asks* for a lock; `xss-lock` is the program that answers by
+running `~/.local/bin/lock`. It's started by i3 `exec` **at login only**, so right after
+adding it (or if it crashed) nothing listens. The power menu now runs
+`~/.local/bin/lock` directly. Check the suspend lock: `pgrep -a xss-lock`; start it
+without re-login: `setsid xss-lock --transfer-sleep-lock -- ~/.local/bin/lock &`.
+
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
 `~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
@@ -703,7 +710,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/cava/showoff.conf` | cava look in the show-off workspace |
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
-| `.local/bin/powermenu` | toggle power menu / run lock, logout, suspend, reboot, shutdown |
+| `.local/bin/powermenu` | toggle power menu / run lock (calls `~/.local/bin/lock` directly), logout, suspend, reboot, shutdown |
 | `.local/bin/lock` | blurred-wallpaper i3lock (`--prepare` = only build image) |
 | `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
