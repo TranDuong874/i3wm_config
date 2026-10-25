@@ -357,7 +357,7 @@ Replace `eDP` / `DP-1-0` with your names from `xrandr`. Notes:
 | `notify-send test hello` | Mocha notification with icon, top-right |
 | `Alt+n` | yazi with icons and Mocha colors |
 | Touchpad | tap = click, two-finger scroll in "natural" direction |
-| `Alt+Shift+e` → `l` | lock screen: clock, date, avatar, username, password box (bars flicker while typing, red "wrong password") |
+| `Alt+Shift+e` → `l` | lock screen: clock, date, avatar, username, password box (its bottom line flashes mauve while typing, red "wrong password") |
 | `Alt+p` → `b` / `l` / `e` | monitor layouts switch; bar + wallpaper redraw; notification |
 
 Validate the i3 config any time with:
@@ -676,10 +676,19 @@ i3lock-color multiplies every position by `dpi / 96` (from `Xft.dpi`, else the X
 screen's physical DPI). `lock` divides its coordinates by the same factor, so it lines up
 with the background on any DPI. Check what X reports: `xdpyinfo | grep resolution`.
 
+### Lock screen blur looks blocky / pixelated
+Shrinking and re-enlarging with `-scale` copies pixels → visible squares. `lock` uses
+`-resize 12.5% -blur 0x6 -resize WxH!` (smooth filter). Delete
+`~/.cache/lockscreen-*.png` to force a rebuild after changing it.
+
+### Icons missing in scripts (empty string)
+Nerd Font icons are private-use characters and can get lost when a file is written by
+some tools. `lock` defines them as UTF-8 bytes (`printf '\xef\x80\x87'`), which survive.
+
 ### Why no dots for typed characters?
-i3lock/i3lock-color never draw the typed characters (security design). Typing makes
-mauve bars flicker inside the box; backspace flashes red; checking = blue; wrong = red
-text under the box.
+i3lock/i3lock-color never draw the typed characters (security design). Instead the thin
+line at the bottom of the box flashes mauve per key (grey at rest), red on backspace,
+blue while checking, and "wrong password" appears in red under the box.
 
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
@@ -752,7 +761,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock (calls `~/.local/bin/lock` directly), logout, suspend, reboot, shutdown |
-| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v2-*.png`), then runs `i3lock-color` with clock, date, username, typing bars |
+| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v3-*.png`), then runs `i3lock-color` with clock, date, username and a typing line |
 | `~/.face` (not tracked) | optional square photo used as the lock screen avatar |
 | `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
