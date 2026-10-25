@@ -1,0 +1,68 @@
+/* Edge: sharp, compact, terminal-style sidebar (Solarized Dark) */
+* {
+  bg:       #002b36;   /* base03 */
+  surface:  #073642;   /* base02 */
+  line:     #0a4552;
+  fg:       #93a1a1;   /* base1  */
+  fg-dim:   #586e75;   /* base01 */
+  accent:   #b58900;   /* yellow */
+  accent-2: #2aa198;   /* cyan   */
+  urgent:   #dc322f;   /* red    */
+
+  background-color: transparent;
+  text-color: @fg;
+  font: "Monospace 10";
+}
+
+window {
+  location: west;
+  anchor: west;
+  width: 360px;
+  height: 100%;
+  background-color: @bg;
+  border: 0 2px 0 0;
+  border-color: @accent;
+  border-radius: 0;
+  padding: 0;
+}
+
+mainbox { spacing: 0; children: [ inputbar, message, listview, mode-switcher ]; }
+
+inputbar {
+  padding: 14px 16px;
+  spacing: 8px;
+  border: 0 0 1px 0;
+  border-color: @line;
+  children: [ prompt, textbox-prompt-colon, entry, num-filtered-rows, textbox-num-sep, num-rows ];
+}
+prompt               { text-color: @accent; }
+textbox-prompt-colon { str: "›"; expand: false; text-color: @fg-dim; }
+entry                { placeholder: "search"; placeholder-color: @fg-dim; cursor: text; }
+num-filtered-rows    { expand: false; text-color: @accent-2; }
+textbox-num-sep      { expand: false; str: "/"; text-color: @fg-dim; }
+num-rows             { expand: false; text-color: @fg-dim; }
+
+message { padding: 8px 16px; border: 0 0 1px 0; border-color: @line; }
+
+listview { padding: 6px 0; spacing: 0; fixed-height: false; scrollbar: false; cycle: true; }
+
+element {
+  padding: 7px 16px 7px 13px;
+  spacing: 10px;
+  border: 0 0 0 3px;
+  border-color: transparent;
+  cursor: pointer;
+}
+element normal.normal, element alternate.normal { background-color: transparent; }
+element selected.normal  { background-color: @surface; border-color: @accent; text-color: @accent; }
+element normal.active, element alternate.active { text-color: @accent-2; }
+element selected.active  { background-color: @surface; border-color: @accent-2; text-color: @accent-2; }
+element normal.urgent, element alternate.urgent { text-color: @urgent; }
+element selected.urgent  { background-color: @surface; border-color: @urgent; text-color: @urgent; }
+
+element-icon { size: 18px; cursor: inherit; }
+element-text { text-color: inherit; vertical-align: 0.5; highlight: bold; cursor: inherit; }
+
+mode-switcher { border: 1px 0 0 0; border-color: @line; spacing: 0; }
+button          { padding: 10px; text-color: @fg-dim; border: 2px 0 0 0; border-color: transparent; cursor: pointer; }
+button selected { text-color: @accent; border-color: @accent; }

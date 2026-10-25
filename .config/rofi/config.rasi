@@ -1,0 +1,11 @@
+configuration {
+  modi: "drun,window,run";
+  show-icons: true;
+  matching: "fuzzy";
+  drun-match-fields: "name,generic,exec,categories,keywords";
+  drun-display-format: "{name} [<span size='small' alpha='60%'>{generic}</span>]";
+  display-drun: "apps";
+  display-window: "windows";
+  display-run: "run";
+}
+@theme "edge"
