@@ -1,27 +1,61 @@
 #!/usr/bin/env bash
-# Centered clock for a terminal pane (show-off workspace), drawn with toilet's "future" font.
-#   termclock [font]   any toilet font, default future
+# Show-off clock pane: greeting, big clock (toilet "future" font), date, weather + week info.
+#   termclock [font]          any toilet font, default future
+#   TERMCLOCK_CITY=Hanoi      weather city (default: guessed from your IP by wttr.in)
 font="${1:-future}"
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/termclock-weather"
 tput civis; trap 'tput cnorm; exit' INT TERM
 redraw=1; trap 'redraw=1' WINCH
-last=""
+last=""; lastw=""
+
+c() { printf '\e[38;2;%sm' "$1"; }; R='\e[0m'
+MAUVE=$(c '203;166;247'); SUB=$(c '166;173;200'); DIM=$(c '108;112;134'); BLUE=$(c '137;180;250')
+strip() { sed 's/\x1b\[[0-9;]*m//g' <<<"$1"; }        # visible text (for centering)
+center() { local plain; plain=$(strip "$1"); local p=$(( (cols - ${#plain}) / 2 )); ((p<0)) && p=0
+           printf '%*s%b\n' $p '' "$1"; }
+
+weather() {  # refresh in the background every 30 min; print cached line
+  if [ ! -s "$cache" ] || [ -n "$(find "$cache" -mmin +30 2>/dev/null)" ]; then
+    ( w=$(curl -s --max-time 10 "https://wttr.in/${TERMCLOCK_CITY}?format=%t|%C|%l") \
+      && [[ "$w" == *"|"* ]] && echo "$w" > "$cache" ) &
+  fi
+  [ -s "$cache" ] || return
+  IFS='|' read -r temp cond loc < "$cache"
+  local l=${cond,,} icon="󰖐"
+  case "$l" in
+    *thunder*) icon="󰖓" ;; *snow*|*sleet*) icon="󰖘" ;; *rain*|*drizzle*|*shower*) icon="󰖗" ;;
+    *fog*|*mist*|*haze*|*smok*) icon="󰖑" ;; *clear*|*sunny*) icon="󰖙" ;; *partly*) icon="󰖕" ;;
+  esac
+  printf '%s %s %s · %s' "$icon" "${temp#+}" "$l" "${loc%%,*}"
+}
+
 while :; do
-  now=$(date +%H:%M)
-  if [ "$redraw" = 1 ] || [ "$now" != "$last" ]; then
+  now=$(date +%H:%M); w=$(weather)
+  if [ "$redraw" = 1 ] || [ "$now" != "$last" ] || [ "$w" != "$lastw" ]; then
     cols=$(tput cols); lines=$(tput lines)
+    h=$(date +%-H)
+    if   ((h>=5 && h<12)); then g="good morning"
+    elif ((h>=12 && h<17)); then g="good afternoon"
+    elif ((h>=17 && h<22)); then g="good evening"
+    else g="good night"; fi
     art=$(toilet -f "$font" "$now")
     d=$(date '+%A, %d %B %Y'); ((${#d} > cols - 2)) && d=$(date '+%a %d %b %Y')
-    h=$(( $(wc -l <<<"$art") + 2 ))
-    out="\e[H\e[2J"
-    for ((i=0; i<(lines-h)/2; i++)); do out+="\n"; done
-    while IFS= read -r l; do
-      pad=$(( (cols - ${#l}) / 2 )); ((pad<0)) && pad=0
-      out+="$(printf '%*s' $pad '')\e[38;2;203;166;247m${l}\e[0m\n"
-    done <<<"$art"
-    pad=$(( (cols - ${#d}) / 2 )); ((pad<0)) && pad=0
-    out+="\n$(printf '%*s' $pad '')\e[38;2;166;173;200m${d}\e[0m"
-    printf "%b" "$out"
-    last="$now"; redraw=0
+    info="week $(date +%V) · day $(date +%-j)"
+    [ -n "$w" ] && info="$w  ·  $info"
+    ((${#info} > cols - 2)) && info="$w"
+
+    rows=$(( $(wc -l <<<"$art") + 5 ))
+    {
+      printf '\e[H\e[2J'
+      for ((i=0; i<(lines-rows)/2; i++)); do echo; done
+      center "${DIM}${g}, ${USER}${R}"
+      echo
+      while IFS= read -r l; do center "${MAUVE}${l}${R}"; done <<<"$art"
+      echo
+      center "${SUB}${d}${R}"
+      printf '%b' "$(center "${BLUE}${info}${R}" | sed 's/\n$//')"
+    } | head -c 100000
+    last="$now"; lastw="$w"; redraw=0
   fi
   sleep 1
 done

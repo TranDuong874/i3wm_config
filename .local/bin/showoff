@@ -6,6 +6,8 @@
 # Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
 if [ "$1" = close ]; then
   i3-msg -q '[instance="^showoff-"] kill'
+  # wait (max 3s) until the panes are really gone, so a rebuild right after works
+  for _ in $(seq 30); do i3-msg -t get_tree | grep -q '"instance":"showoff-' || break; sleep 0.1; done
   exit 0
 fi
 ws="${1:-10}"
@@ -17,8 +19,8 @@ if i3-msg -t get_tree | grep -q '"instance":"showoff-btop"'; then
   exit 0
 fi
 
-i3-msg -q "workspace $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
-kitty --name showoff-clock -o font_size=20 ~/.local/bin/termclock &
+i3-msg -q "workspace --no-auto-back-and-forth $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
+kitty --name showoff-clock -o font_size=17 -o box_drawing_scale=0.001,1.5,3,4 ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &
