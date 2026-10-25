@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Terminal "show-off" workspace: clock, fastfetch, btop, now playing.
+# Terminal "show-off" workspace: clock, fastfetch, btop, now playing + cava visualizer.
 #   showoff        (Alt+Shift+i) build it on workspace 10, or jump there / back
 #   showoff 3      build it on workspace 3
 # Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
@@ -17,3 +17,4 @@ kitty --name showoff-clock ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &
+kitty --name showoff-cava -o window_padding_width=0 cava -p ~/.config/cava/showoff.conf &
