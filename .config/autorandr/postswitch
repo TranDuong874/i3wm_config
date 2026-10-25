@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Runs after every autorandr profile switch (manual or on plug/unplug).
+# Redraw everything that depends on screen size.
+
+# one polybar per monitor
+setsid ~/.config/polybar/launch.sh >/dev/null 2>&1 < /dev/null &
+
+# wallpaper
+feh --no-fehbg --bg-fill ~/wallpapers/pexels-frostroomhead-17807337.jpg
+
+# lock screen image for the new screen size
+~/.local/bin/lock --prepare &
+
+# popups were sized for the old layout
+eww close-all >/dev/null 2>&1
+
+notify-send -a autorandr "Display" "Switched to: ${AUTORANDR_CURRENT_PROFILE:-unknown}"
