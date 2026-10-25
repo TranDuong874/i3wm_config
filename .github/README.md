@@ -523,6 +523,9 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/eww.scss` | widget styling |
 | `.config/eww/scripts/osd.sh` | change volume/brightness + show popup |
 | `.config/eww/scripts/desktop.sh` | open the desktop clock + music widgets and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
+| `.local/bin/showoff` | terminal show-off workspace (`showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing. Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
+| `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` |
+| `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock, logout, suspend, reboot, shutdown |
 | `.local/bin/lock` | blurred-wallpaper i3lock (`--prepare` = only build image) |

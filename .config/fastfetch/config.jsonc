@@ -1,0 +1,16 @@
+// Catppuccin Mocha colors for fastfetch
+{
+  "logo": { "type": "small", "color": { "1": "magenta", "2": "blue" }, "padding": { "right": 3 } },
+  "display": {
+    "separator": "  ",
+    "color": { "keys": "magenta", "title": "blue" }
+  },
+  "modules": [
+    "title", "separator",
+    "os", "host", "kernel", "uptime", "packages", "shell",
+    "wm", "theme", "icons", "font", "terminal",
+    "cpu",
+    { "type": "gpu", "format": "{2}" }, "memory", "disk", "battery",
+    "break", "colors"
+  ]
+}

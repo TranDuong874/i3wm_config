@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Now-playing pane: title, artist, progress bar (show-off workspace).
+tput civis; trap 'tput cnorm; exit' INT TERM
+M='\e[38;2;203;166;247m'; T='\e[38;2;205;214;244m'; D='\e[38;2;108;112;134m'; S='\e[38;2;69;71;90m'; R='\e[0m'
+center(){ local s="$1" plain="$2"; printf '%*s%b\n' $(( (cols - ${#plain}) / 2 )) '' "$s"; }
+while :; do
+  cols=$(tput cols); lines=$(tput lines)
+  meta=$(playerctl metadata --format '{{status}}|{{title}}|{{artist}}|{{duration(position)}}|{{duration(mpris:length)}}|{{position*100/mpris:length}}' 2>/dev/null)
+  printf '\e[H\e[2J'
+  for ((i=0; i<(lines-6)/2; i++)); do echo; done
+  if [ -z "$meta" ]; then
+    center "${D}󰝛  nothing playing${R}" "󰝛  nothing playing"
+  else
+    IFS='|' read -r st title artist pos len pct <<<"$meta"
+    icon="󰏤"; [ "$st" = Playing ] && icon="󰎈"
+    w=$(( cols * 6 / 10 )); f=$(( ${pct%.*} * w / 100 ))
+    bar="$(printf '━%.0s' $(seq 1 $f))"; rest="$(printf '─%.0s' $(seq 1 $((w-f))))"; ((f==0)) && bar=""; ((w-f==0)) && rest=""
+    center "${M}${icon}${R}  ${T}${title}${R}" "${icon}  ${title}"
+    center "${D}${artist}${R}" "$artist"
+    echo
+    center "${M}${bar}${S}${rest}${R}" "$bar$rest"
+    center "${D}${pos} / ${len}${R}" "$pos / $len"
+  fi
+  sleep 1
+done

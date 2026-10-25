@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Terminal "show-off" workspace: clock, fastfetch, btop, now playing.
+#   showoff        build it on workspace 10
+#   showoff 3      build it on workspace 3
+# Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
+ws="${1:-10}"
+i3-msg -q "workspace $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
+kitty --name showoff-clock -o font_size=26 -o window_padding_width=0 ~/.local/bin/termclock &
+kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
+kitty --name showoff-btop  btop &
+kitty --name showoff-music -o font_size=13 ~/.local/bin/nowplaying &

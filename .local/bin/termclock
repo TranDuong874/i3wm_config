@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Big centered clock for a terminal pane (show-off workspace).
+font="${1:-future}"
+tput civis; trap 'tput cnorm; exit' INT TERM
+while :; do
+  cols=$(tput cols); lines=$(tput lines)
+  art=$(toilet -f "$font" "$(date +%H:%M)")
+  date=$(date '+%A, %d %B')
+  h=$(( $(wc -l <<<"$art") + 2 ))
+  out="\e[H\e[2J"
+  for ((i=0; i<(lines-h)/2; i++)); do out+="\n"; done
+  while IFS= read -r l; do
+    pad=$(( (cols - ${#l}) / 2 )); ((pad<0)) && pad=0
+    out+="$(printf '%*s' $pad '')\e[38;2;203;166;247m${l}\e[0m\n"
+  done <<<"$art"
+  pad=$(( (cols - ${#date}) / 2 ))
+  out+="\n$(printf '%*s' $pad '')\e[38;2;166;173;200m${date}\e[0m"
+  printf "%b" "$out"
+  sleep $((60 - 10#$(date +%S)))  # wake on the minute
+done
