@@ -100,19 +100,23 @@
           (button :onclick "playerctl play-pause" {music_status == "Playing" ? "󰏤" : "󰐊"})
           (button :onclick "playerctl next"       "󰒭"))))))
 
-;; system stats card (top right)
+;; system stats + calendar cards (top right)
 (defwindow desktop-stats
   :monitor "<primary>"
   :geometry (geometry :x "-56px" :y "72px" :width "320px" :anchor "top right")
   :stacking "bg"
   :wm-ignore true
-  (box :class "desk-stats" :orientation "v" :space-evenly false :spacing 10
-    (label :class "desk-stats-title" :halign "start" :text "system")
-    (stat :icon "󰍛" :label "cpu"     :value {EWW_CPU.avg})
-    (stat :icon "󰘚" :label "ram"     :value {EWW_RAM.used_mem_perc})
-    (stat :icon "󰋊" :label "disk"    :value {EWW_DISK["/"].used_perc})
-    (stat :icon "󰁹" :label "battery" :value {EWW_BATTERY.BAT0.capacity})
-    (label :class "dim" :halign "start" :text "󰔟 up ${uptime}")))
+  (box :orientation "v" :space-evenly false :spacing 16
+    (box :class "desk-stats" :orientation "v" :space-evenly false :spacing 10
+      (label :class "desk-stats-title" :halign "start" :text "system")
+      (stat :icon "󰍛" :label "cpu"     :value {EWW_CPU.avg})
+      (stat :icon "󰘚" :label "ram"     :value {EWW_RAM.used_mem_perc})
+      (stat :icon "󰋊" :label "disk"    :value {EWW_DISK["/"].used_perc})
+      (stat :icon "󰁹" :label "battery" :value {EWW_BATTERY.BAT0.capacity})
+      (label :class "dim" :halign "start" :text "󰔟 up ${uptime}"))
+    (box :class "desk-stats" :orientation "v" :space-evenly false :spacing 6
+      (label :class "desk-stats-title" :halign "start" :text "calendar")
+      (calendar :class "cal"))))
 
 ;; ---------- calendar (click the clock in polybar) ----------
 (defwindow calendar

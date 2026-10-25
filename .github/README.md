@@ -310,7 +310,7 @@ Replace `eDP` / `DP-1-0` with your names from `xrandr`. Notes:
 | Brightness keys | screen dims + popup bar; polybar 󰃠 % changes |
 | Click the clock | calendar popup top-right |
 | `Alt+Shift+d` / 󰕮 in bar | dashboard (clock, calendar, cpu/ram/disk/battery, sliders, music) |
-| on the wallpaper | big clock (top left), system stats card (top right), music card with album art (bottom left, hidden when nothing plays); `Alt+Shift+w` hides/shows them |
+| on the wallpaper | big clock (top left), system stats + calendar cards (top right), music card with album art (bottom left, hidden when nothing plays); `Alt+Shift+w` hides/shows them |
 | `Alt+Shift+e` / ⏻ in bar | power menu; `Esc` closes it |
 | `Print` | flameshot area select, saved to `~/Pictures/Screenshots` |
 | `notify-send test hello` | Mocha notification with icon, top-right |
