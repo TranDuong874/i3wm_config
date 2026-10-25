@@ -115,6 +115,10 @@ calendar {
   background-position: center;
 }
 .cover-icon { color: $overlay0; font-size: 36px; }
+.desk-music.idle { padding: 12px 18px; }
+.desk-music.idle:hover { border-color: $mauve; background-color: rgba(49, 50, 68, 0.9); }
+.idle-icon { color: $overlay0; font-size: 26px; }
+.dim-title { color: $subtext; }
 .music-title { font-size: 15px; }
 .music-bar { margin: 8px 0 2px 0; }
 .cava { margin-top: 8px; }

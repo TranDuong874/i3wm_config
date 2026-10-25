@@ -219,6 +219,7 @@ exec_always --no-startup-id ~/.config/polybar/launch.sh
 exec --no-startup-id eww daemon
 exec --no-startup-id ~/.config/eww/scripts/desktop.sh
 bindsym $mod+Shift+w exec --no-startup-id ~/.config/eww/scripts/desktop.sh toggle
+bindsym $mod+m exec --no-startup-id ~/.local/bin/music
 bindsym $mod+Shift+i exec --no-startup-id ~/.local/bin/showoff
 bindsym $mod+Ctrl+i exec --no-startup-id ~/.local/bin/showoff close
 exec --no-startup-id picom --config ~/.config/picom/picom.conf
