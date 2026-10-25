@@ -4,7 +4,7 @@
 #   TERMCLOCK_CITY=Hanoi      weather city (default: guessed from your IP by wttr.in)
 font="${1:-future}"
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/termclock-weather"
-tput civis; trap 'tput cnorm; exit' INT TERM
+stty -echo 2>/dev/null; tput civis; trap 'tput cnorm; exit' INT TERM
 redraw=1; trap 'redraw=1' WINCH
 last=""; lastw=""
 

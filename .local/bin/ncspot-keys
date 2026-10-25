@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Two-line ncspot shortcut strip: its own slim pane under ncspot in the show-off
 # workspace (kitty --name showoff-keys). Redraws when the pane is resized.
-tput civis
+tput civis; stty -echo 2>/dev/null   # don't print keys typed into this pane
 K=$'\e[38;2;203;166;247m'; L=$'\e[38;2;127;132;156m'; R=$'\e[0m'
 line1="${K}F1${L} queue  ${K}F2${L} search  ${K}F3${L} library  ${K}/${L} filter  ${K}?${L} help  ${K}q${L} quit${R}"
-line2="${K}⏎${L} play  ${K}␣${L} add to queue  ${K}P${L} pause  ${K}< >${L} prev/next  ${K}[ ]${L} volume  ${K}z${L} shuffle  ${K}r${L} repeat  ${K}s${L} save${R}"
+line2="${K}enter${L} play  ${K}space${L} queue  ${K}P${L} pause  ${K}< >${L} prev/next  ${K}[ ]${L} vol  ${K}z${L} shuffle  ${K}s${L} save${R}"
 draw() {
   local cols lines p1 p2 v1 v2
   cols=$(tput cols); lines=$(tput lines)

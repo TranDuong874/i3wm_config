@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Now-playing pane for the show-off workspace: album cover (kitty icat) + title,
 # artist, progress bar. Covers are shared with the eww widget cache.
-tput civis; trap 'tput cnorm; exit' INT TERM
+stty -echo 2>/dev/null; tput civis; trap 'tput cnorm; exit' INT TERM
 redraw=1; trap 'redraw=1' WINCH
 M='\e[38;2;203;166;247m'; T='\e[38;2;205;214;244m'; D='\e[38;2;108;112;134m'; S='\e[38;2;69;71;90m'; R='\e[0m'
 cache="${XDG_CACHE_HOME:-$HOME/.cache}/eww/covers"; mkdir -p "$cache"

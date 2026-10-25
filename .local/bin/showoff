@@ -79,9 +79,9 @@ stop_ncspot      # also clears orphaned ncspot processes
 
 i3-msg -q "workspace --no-auto-back-and-forth $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
 kitty --name showoff-clock -o font_size=17 -o box_drawing_scale=0.001,1.5,3,4 ~/.local/bin/termclock &
-kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
+kitty --name showoff-fetch -o font_size=10 bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &
 kitty --name ncspot --title ncspot ncspot &
-kitty --name showoff-keys ~/.local/bin/ncspot-keys &
+kitty --name showoff-keys -o font_size=10 ~/.local/bin/ncspot-keys &
 kitty --name showoff-cava -o window_padding_width=0 cava -p ~/.config/cava/showoff.conf &
