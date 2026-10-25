@@ -89,6 +89,28 @@ calendar {
   &:hover { background-color: $surface0; color: $mauve; }
 }
 
+// ---- desktop widgets ----
+.desk-clock { padding: 4px; }
+.desk-time { font-size: 96px; color: $text; text-shadow: 0 2px 8px rgba(17, 17, 27, 0.6); }
+.desk-sec  { font-size: 28px; color: $mauve; margin: 0 0 18px 10px; }
+.desk-date { font-size: 18px; color: $text; margin-left: 4px; text-shadow: 0 1px 6px rgba(17, 17, 27, 0.8); }
+
+.desk-music {
+  background-color: rgba(24, 24, 37, 0.85);   // mantle, slightly see-through
+  border: 1px solid $surface0;
+  border-left: 3px solid $mauve;
+  padding: 12px;
+}
+.cover {
+  background-color: $surface0;
+  background-size: cover;
+  background-position: center;
+}
+.cover-icon { color: $overlay0; font-size: 36px; }
+.music-title { font-size: 15px; }
+.music-bar { margin: 8px 0 2px 0; }
+.music-time { font-size: 11px; }
+
 // ---- power menu ----
 .power-button {
   background-color: $mantle;

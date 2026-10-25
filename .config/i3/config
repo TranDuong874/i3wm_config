@@ -217,6 +217,8 @@ bindsym $mod+r mode "resize"
 
 exec_always --no-startup-id ~/.config/polybar/launch.sh
 exec --no-startup-id eww daemon
+exec --no-startup-id ~/.config/eww/scripts/desktop.sh
+bindsym $mod+Shift+w exec --no-startup-id ~/.config/eww/scripts/desktop.sh toggle
 exec --no-startup-id picom --config ~/.config/picom/picom.conf
 exec --no-startup-id dunst
 

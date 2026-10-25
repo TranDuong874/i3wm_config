@@ -13,5 +13,6 @@ feh --no-fehbg --bg-fill ~/wallpapers/pexels-frostroomhead-17807337.jpg
 
 # popups were sized for the old layout
 eww close-all >/dev/null 2>&1
+~/.config/eww/scripts/desktop.sh &
 
 notify-send -a autorandr "Display" "Switched to: ${AUTORANDR_CURRENT_PROFILE:-unknown}"
