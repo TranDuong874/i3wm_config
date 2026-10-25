@@ -85,7 +85,8 @@ sudo apt install -y \
   brightnessctl playerctl pavucontrol pulseaudio-utils cava \
   blueman network-manager-gnome \
   libnotify-bin imagemagick x11-utils x11-xserver-utils xinput \
-  git curl unzip fontconfig fonts-dejavu btop fastfetch toilet \
+  git curl unzip fontconfig fonts-dejavu fonts-ubuntu btop fastfetch toilet \
+  xserver-xephyr \
   yaru-theme-gtk yaru-theme-icon gnome-themes-extra \
   build-essential pkg-config libgtk-3-dev libdbusmenu-gtk3-dev
 ```
@@ -98,11 +99,15 @@ What each group is for:
 | `polybar rofi dunst picom feh` | bar, launcher, notifications, compositor, wallpaper |
 | `kitty flameshot autorandr` | terminal, screenshots, monitor profiles |
 | `brightnessctl playerctl pavucontrol pulseaudio-utils` | brightness keys, media keys, volume GUI, `pactl` |
+| `cava` | audio visualizer (desktop music card + show-off workspace) |
+| `btop fastfetch toilet` | show-off workspace: system monitor, system info, big clock font |
+| `fonts-ubuntu` | **Ubuntu Sans**, the lock screen font (preinstalled on Ubuntu desktop) |
+| `xserver-xephyr` | test the lock screen in a window without locking yourself out (optional) |
 | `blueman network-manager-gnome` | bluetooth + wifi tray icons (`nm-applet`) |
 | `libnotify-bin` | `notify-send` (used by scripts) |
 | `imagemagick x11-utils x11-xserver-utils xinput` | lock-screen blur (`convert`), `xdpyinfo`/`xwininfo`, `xrandr`, touchpad settings |
 | `yaru-theme-* gnome-themes-extra` | GTK theme and icons (usually already installed on Ubuntu) |
-| `build-essential pkg-config libgtk-3-dev libdbusmenu-gtk3-dev` | **only needed to build eww** (step 6) |
+| `build-essential pkg-config libgtk-3-dev libdbusmenu-gtk3-dev` | **only needed to build eww** (step 6); i3lock-color needs a few more, listed there |
 
 yazi is not in apt on 24.04 — install it as a snap:
 
@@ -776,7 +781,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock (calls `~/.local/bin/lock` directly), logout, suspend, reboot, shutdown |
-| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v4-*.png`), then runs `i3lock-color` with clock, date, username and the flashing ring on the avatar's edge |
+| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + round avatar with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v4-*.png`), then runs `i3lock-color` with clock, date, username and the flashing ring on the avatar's edge |
 | `~/.face` (not tracked) | optional square photo used as the lock screen avatar |
 | `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
