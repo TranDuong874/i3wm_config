@@ -2,7 +2,12 @@
 # Terminal "show-off" workspace: clock, fastfetch, btop, now playing + cava visualizer.
 #   showoff        (Alt+Shift+i) build it on workspace 10, or jump there / back
 #   showoff 3      build it on workspace 3
+#   showoff close  (Alt+Ctrl+i) close all its panes; i3 removes the empty workspace
 # Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
+if [ "$1" = close ]; then
+  i3-msg -q '[instance="^showoff-"] kill'
+  exit 0
+fi
 ws="${1:-10}"
 
 # already built? then just toggle between it and the previous workspace
@@ -13,7 +18,7 @@ if i3-msg -t get_tree | grep -q '"instance":"showoff-btop"'; then
 fi
 
 i3-msg -q "workspace $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
-kitty --name showoff-clock ~/.local/bin/termclock &
+kitty --name showoff-clock -o font_size=24 ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &

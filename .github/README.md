@@ -343,6 +343,7 @@ i3 -C -c ~/.config/i3/config     # no output + exit code 0 = OK
 | `Alt+Tab` | window switcher | `rofi -show window` |
 | `Alt+Shift+d` | dashboard (toggle) | `eww open --toggle dashboard` |
 | `Alt+Shift+i` | show-off terminal workspace (builds it on ws 10, then jumps there / back) | `~/.local/bin/showoff` |
+| `Alt+Ctrl+i` | close the show-off workspace (all its panes) | `~/.local/bin/showoff close` |
 | `Alt+Shift+w` | desktop clock, stats, music (toggle) | `~/.config/eww/scripts/desktop.sh toggle` |
 | `Alt+Shift+q` | close window | i3 `kill` |
 
