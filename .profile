@@ -28,3 +28,4 @@ fi
 
 
 export NEWT_COLORS_FILE="$HOME/.config/newt/colors"
+export TERMINAL=kitty

@@ -29,16 +29,16 @@ exec --no-startup-id dex --autostart --environment i3
 
 # xss-lock grabs a logind suspend inhibit lock and will use i3lock to lock the
 # screen before suspend. Use loginctl lock-session to lock your screen.
-exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
+exec --no-startup-id xss-lock --transfer-sleep-lock -- ~/.local/bin/lock
 
 # NetworkManager is the most popular way to manage wireless networks on Linux,
 # and nm-applet is a desktop environment-independent system tray GUI for it.
 exec --no-startup-id nm-applet
 
 # Use pactl to adjust volume in PulseAudio.
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +2%
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -2%
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioRaiseVolume exec --no-startup-id ~/.config/eww/scripts/osd.sh vol-up
+bindsym XF86AudioLowerVolume exec --no-startup-id ~/.config/eww/scripts/osd.sh vol-down
+bindsym XF86AudioMute exec --no-startup-id ~/.config/eww/scripts/osd.sh vol-mute
 bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
 # use these keys for focus, movement, and resize directions when reaching for
@@ -56,7 +56,9 @@ floating_modifier Mod1
 tiling_drag modifier titlebar
 
 # start a terminal
-bindsym $mod+Return exec i3-sensible-terminal
+bindsym $mod+Return exec kitty
+# file manager (yazi in a terminal)
+bindsym $mod+n exec --no-startup-id kitty -e yazi
 
 # kill focused window
 bindsym $mod+Shift+q kill
@@ -168,7 +170,17 @@ bindsym $mod+Shift+c reload
 # restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
 bindsym $mod+Shift+r restart
 # exit i3 (logs you out of your X session)
-bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+bindsym $mod+Shift+e exec --no-startup-id ~/.local/bin/powermenu
+# keys while the power menu is open (powermenu switches to this mode)
+mode "power" {
+    bindsym l      exec --no-startup-id ~/.local/bin/powermenu lock
+    bindsym e      exec --no-startup-id ~/.local/bin/powermenu logout
+    bindsym s      exec --no-startup-id ~/.local/bin/powermenu suspend
+    bindsym r      exec --no-startup-id ~/.local/bin/powermenu reboot
+    bindsym p      exec --no-startup-id ~/.local/bin/powermenu shutdown
+    bindsym Escape exec --no-startup-id ~/.local/bin/powermenu close
+    bindsym $mod+Shift+e exec --no-startup-id ~/.local/bin/powermenu close
+}
 
 # resize window (you can also use the mouse for that)
 mode "resize" {
@@ -204,6 +216,7 @@ bindsym $mod+r mode "resize"
 # }
 
 exec_always --no-startup-id ~/.config/polybar/launch.sh
+exec --no-startup-id eww daemon
 exec --no-startup-id picom --config ~/.config/picom/picom.conf
 exec --no-startup-id dunst
 
@@ -212,14 +225,18 @@ exec --no-startup-id dunst
 # CUSTOM SCRIPTS
 #######################################################################
 
-# Bind display option
-set $ext DP-1-2
-set $mode_display Display: (e)xternal  (l)aptop  (b)oth
+# Display layouts (autorandr profiles in ~/.config/autorandr)
+#   auto = pick by what's plugged in, docked = external only,
+#   laptop = built-in only, both = laptop left + external right
+exec --no-startup-id autorandr --change
+set $mode_display Display: (a)uto  (e)xternal  (l)aptop  (b)oth
 mode "$mode_display" {
-    bindsym e exec --no-startup-id xrandr --output $ext --mode 1920x1080 --rate 144 --primary --output eDP --off, mode "default"
-    bindsym l exec --no-startup-id xrandr --output eDP --auto --primary --output $ext --off, mode "default"
-    bindsym b exec --no-startup-id xrandr --output eDP --auto --output $ext --mode 1920x1080 --rate 144 --primary --right-of eDP, mode "default"
+    bindsym a exec --no-startup-id autorandr --change --force, mode "default"
+    bindsym e exec --no-startup-id autorandr --load docked, mode "default"
+    bindsym l exec --no-startup-id autorandr --load mobile, mode "default"
+    bindsym b exec --no-startup-id autorandr --load both, mode "default"
     bindsym Escape mode "default"
+    bindsym Return mode "default"
 }
 bindsym $mod+p mode "$mode_display"
 
@@ -248,8 +265,8 @@ bindsym $mod+Tab exec --no-startup-id rofi -show window -show-icons
 bindsym XF86AudioPlay         exec --no-startup-id playerctl play-pause
 bindsym XF86AudioNext         exec --no-startup-id playerctl next
 bindsym XF86AudioPrev         exec --no-startup-id playerctl previous
-bindsym XF86MonBrightnessUp   exec --no-startup-id brightnessctl set +10%
-bindsym XF86MonBrightnessDown exec --no-startup-id brightnessctl set 10%-
+bindsym XF86MonBrightnessUp   exec --no-startup-id ~/.config/eww/scripts/osd.sh bright-up
+bindsym XF86MonBrightnessDown exec --no-startup-id ~/.config/eww/scripts/osd.sh bright-down
 
 # --- tray icons ---
 exec --no-startup-id blueman-applet
@@ -259,7 +276,7 @@ set $mode_ctl Controls: (a)udio  (b)luetooth  (w)ifi
 mode "$mode_ctl" {
     bindsym a exec --no-startup-id pavucontrol, mode "default"
     bindsym b exec --no-startup-id blueman-manager, mode "default"
-    bindsym w exec --no-startup-id i3-sensible-terminal -e nmtui, mode "default"
+    bindsym w exec --no-startup-id kitty -e nmtui, mode "default"
     bindsym Escape mode "default"
 }
 bindsym $mod+c mode "$mode_ctl"
@@ -278,3 +295,9 @@ bindsym $mod+Ctrl+s     exec --no-startup-id flameshot screen -c
 
 for_window [class="flameshot"] floating enable, border none
 
+# --- eww widgets ---
+bindsym $mod+Shift+d exec --no-startup-id eww open --toggle dashboard
+
+# --- touchpad: tap to click (i3 doesn't turn it on like GNOME does) ---
+exec_always --no-startup-id xinput set-prop "SYNA2BA6:00 06CB:CE44 Touchpad" "libinput Tapping Enabled" 1
+exec_always --no-startup-id xinput set-prop "SYNA2BA6:00 06CB:CE44 Touchpad" "libinput Natural Scrolling Enabled" 1

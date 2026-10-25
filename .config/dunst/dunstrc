@@ -33,6 +33,8 @@
     icon_position = left
     min_icon_size = 24
     max_icon_size = 32
+    enable_recursive_icon_lookup = true
+    icon_theme = "Yaru-magenta-dark, Yaru, Adwaita"
 
     mouse_left_click = close_current
     mouse_middle_click = do_action, close_current
