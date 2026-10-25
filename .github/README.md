@@ -421,20 +421,26 @@ A tiled "dashboard with more information" made of kitty panes, built on **worksp
 ┌───────────────────────────────┬──────────────────────────────────┐
 │     good night, tranduong     │ btop (Catppuccin theme)           │
 │      ┏━┓┏━┓ ╺┓ ┏━┓  (future)   │                                   │
-│   Monday, 26 October 2026     │                                   │
-│ 󰖑 27°C haze · Hanoi · week 44 ├──────────────────────────────────┤
-├───────────────────────────────┤ [cover]  ♪ Song · Artist          │
-│ fastfetch (small logo, Mocha) │          ━━━━━━━──  1:08 / 3:11   │
-│                               ├──────────────────────────────────┤
-│ ❯                             │ ▂▅▇█▆▃ cava (mauve→pink→blue)     │
+│ 󰖑 27°C haze · Hanoi · week 44 │                                   │
+├───────────────────────────────┤                                   │
+│ fastfetch (small logo, Mocha) │                                   │
+├───────────────────────────────┼──────────────────────────────────┤
+│ ncspot (Spotify: library,     │ [cover]  ♪ Song · Artist          │
+│ search, queue)                │          ━━━━━━━──  1:08 / 3:11   │
+├───────────────────────────────┼──────────────────────────────────┤
+│ F1 queue F2 search … (keys)   │ ▂▅▇█▆▃ cava (mauve→pink→blue)     │
 └───────────────────────────────┴──────────────────────────────────┘
 ```
 
 | Key / command | Does |
 |---|---|
 | `Alt+Shift+i` / `showoff` | build it on ws 10; if it already exists, jump to it, or back to where you were |
-| `Alt+Ctrl+i` / `showoff close` | close all its panes (waits until they're gone); i3 removes the empty workspace |
+| `Alt+Ctrl+i` / `showoff close` | close all its panes, stop ncspot, remove leftover empty placeholders |
+| `showoff save` | **save the current arrangement** of ws 10 (order + sizes) as the layout to build next time |
 | `showoff 3` | build it on another workspace instead |
+
+Rearrange the panes however you like (`Alt+Shift+arrows` to move, `Alt+r` to resize),
+then run `showoff save`.
 
 Pieces:
 
@@ -442,6 +448,8 @@ Pieces:
 |---|---|---|
 | clock | `~/.local/bin/termclock` — greeting, `toilet -f future` digits, date, weather (wttr.in, cached 30 min in `~/.cache/termclock-weather`), ISO week + day of year | kitty `-o font_size=17 -o box_drawing_scale=0.001,1.5,3,4` (thicker digits) in `showoff` |
 | system info | `fastfetch` | `~/.config/fastfetch/config.jsonc` (small logo, short GPU names) |
+| Spotify | `ncspot` (kitty `--name ncspot`) | `~/snap/ncspot/common/.config/config.toml` (see [Spotify](#spotify-ncspot)) |
+| key strip | `~/.local/bin/ncspot-keys` — ncspot's main shortcuts in two lines | — |
 | monitor | `btop` | `~/.config/btop/btop.conf` → `color_theme = "catppuccin_mocha"`, `theme_background = False` |
 | now playing | `~/.local/bin/nowplaying` — cover via `kitty +kitten icat`, title, artist, progress | shares the cover cache with eww |
 | waves | `cava -p ~/.config/cava/showoff.conf` | gradient colors, bar width/spacing |
@@ -450,6 +458,31 @@ The layout is `~/.config/i3/layouts/showoff.json` (`append_layout`); each placeh
 "swallows" a kitty started with `--name showoff-<pane>`. Change the pane sizes with the
 `percent` values there. To fix a messed-up layout (e.g. after `Alt+s`/`Alt+w`):
 `Alt+Ctrl+i` then `Alt+Shift+i`.
+
+---
+
+### Spotify (ncspot)
+
+The official Spotify app is an Electron browser (~1 GB RAM). **ncspot** is a terminal
+client (tens of MB, needs Premium) and the default music player here.
+
+```bash
+sudo snap install ncspot --edge     # 1.5.0+: older versions can't finish the 2nd login (see §13)
+ncspot                               # first run: click both login links, approve in the browser
+```
+
+- `Alt+m` (`~/.local/bin/music`): focus ncspot if it's open (also its show-off pane),
+  otherwise open it in kitty. Falls back to the official app if ncspot isn't installed.
+- The official app is still there: `Alt+d` → Spotify. Use **one at a time** — both
+  register as media players, and Spotify plays on one device per account.
+- Config (Mocha theme) is in the **snap's own folder**, because the snap can't read
+  `~/.config`: `~/snap/ncspot/common/.config/config.toml` (tracked in git).
+- Main keys: `F1` queue, `F2` search, `F3` library, `Enter` play, `Space` add to queue,
+  `P` pause, `<` `>` prev/next, `[` `]` volume, `z` shuffle, `r` repeat, `s` save, `?` help,
+  `q` quit. Media keys and the widgets work through MPRIS as before.
+- When nothing plays, the wallpaper music card shows **"nothing playing · open ncspot ·
+  Alt+m"** (click it to open ncspot).
+- Once 1.5.0 reaches stable: `sudo snap refresh ncspot --stable`.
 
 ---
 
@@ -495,6 +528,7 @@ tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, 
 | `Alt+d` | app launcher | `rofi -show drun` |
 | `Alt+Tab` | window switcher | `rofi -show window` |
 | `Alt+Shift+d` | dashboard (toggle) | `eww open --toggle dashboard` |
+| `Alt+m` | Spotify (ncspot): open, or jump to it | `~/.local/bin/music` |
 | `Alt+Shift+i` | show-off terminal workspace (builds it on ws 10, then jumps there / back) | `~/.local/bin/showoff` |
 | `Alt+Ctrl+i` | close the show-off workspace (all its panes) | `~/.local/bin/showoff close` |
 | `Alt+Shift+w` | desktop clock, stats, music (toggle) | `~/.config/eww/scripts/desktop.sh toggle` |
@@ -709,6 +743,25 @@ i3lock/i3lock-color never draw the typed characters (security design). Instead t
 ring around the avatar (i3lock's normal indicator, restyled) flashes a white segment per
 key, red on backspace, turns blue while checking, and red + "wrong password" on failure.
 
+### ncspot: second login says "redirect_uri: Not matching configuration"
+ncspot logs in twice (playback + Web API, two different app IDs). Since late 2026
+Spotify only accepts the Web API login at `/ncspot_login`, which ncspot **1.5.0** uses;
+1.4.0 (snap stable at the time) still sends `/login`. Fix:
+`sudo snap refresh ncspot --edge`, then start ncspot again (the first login is kept).
+
+### ncspot keeps running after its window closes
+ncspot ignores SIGTERM and survives its kitty window closing — an orphaned process that
+eats CPU and blocks the next start. `showoff` stops it with Ctrl-C (`SIGINT`), then
+`SIGKILL`. Manually: `pkill -INT -x ncspot`, or `pkill -KILL -x ncspot`.
+
+### Show-off layout: a pane is empty / an extra column appears
+A layout placeholder whose program never started stays on the workspace and grabs the
+next matching window. `showoff close` removes leftover placeholders; then `Alt+Shift+i`.
+
+### kitty: `Unknown option: --bias` in a session file
+`launch --bias` doesn't exist in kitty 0.32 (Ubuntu 24.04). That's why the ncspot key strip
+is its own i3 pane instead of a kitty split.
+
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
 `~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
@@ -774,6 +827,9 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/osd.sh` | change volume/brightness + show popup |
 | `.config/eww/scripts/desktop.sh` | open the desktop widgets (clock, stats + calendar, music) and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
 | `.local/bin/showoff` | terminal show-off workspace (`Alt+Shift+i`, or `showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing, cava visualizer (`.config/cava/showoff.conf`). Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
+| `.local/bin/music` | `Alt+m`: open / focus ncspot |
+| `.local/bin/ncspot-keys` | ncspot shortcut strip pane in the show-off workspace |
+| `snap/ncspot/common/.config/config.toml` | ncspot Mocha theme (snap-private config folder) |
 | `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` (the cover is drawn with `kitty +kitten icat`, so the music pane only works in kitty) |
 | `.config/btop/btop.conf`, `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
 | `.config/i3/layouts/showoff.json` | pane layout of the show-off workspace |

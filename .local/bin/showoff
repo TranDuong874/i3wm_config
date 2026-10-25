@@ -1,11 +1,65 @@
 #!/usr/bin/env bash
-# Terminal "show-off" workspace: clock, fastfetch, btop, now playing + cava visualizer.
+# Terminal "show-off" workspace: clock, fastfetch, btop, now playing, ncspot + cava visualizer.
 #   showoff        (Alt+Shift+i) build it on workspace 10, or jump there / back
 #   showoff 3      build it on workspace 3
 #   showoff close  (Alt+Ctrl+i) close all its panes; i3 removes the empty workspace
+#   showoff save   save the current arrangement of workspace 10 (pane order + sizes)
+#                  as the layout that Alt+Shift+i builds
 # Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
+# ncspot ignores SIGTERM and survives its kitty window closing (orphaned, eating CPU),
+# so stop it explicitly: Ctrl-C first, then SIGKILL after 1 s.
+stop_ncspot() {
+  pkill -INT -x ncspot
+  for _ in $(seq 10); do pgrep -x ncspot >/dev/null || return 0; sleep 0.1; done
+  pkill -KILL -x ncspot
+  for _ in $(seq 10); do pgrep -x ncspot >/dev/null || return 0; sleep 0.1; done
+}
+
+if [ "$1" = save ]; then
+  python3 - "${2:-10}" "$HOME/.config/i3/layouts/showoff.json" <<'PY'
+import json, subprocess, sys
+ws, out = sys.argv[1], sys.argv[2]
+tree = json.loads(subprocess.check_output(["i3-msg", "-t", "get_tree"]))
+def find(n):
+    if n.get("type") == "workspace" and n.get("name") == ws: return n
+    for c in n.get("nodes", []):
+        r = find(c)
+        if r: return r
+w = find(tree)
+if not w or not w["nodes"]: sys.exit(f"workspace {ws} is empty")
+def conv(n):
+    inst = (n.get("window_properties") or {}).get("instance")
+    if n.get("window") and inst:
+        if not (inst.startswith("showoff-") or inst == "ncspot"): return None   # skip foreign windows
+        return {"type": "con", "percent": round(n["percent"] or 1, 3),
+                "swallows": [{"instance": f"^{inst}$"}]}
+    kids = [k for k in (conv(c) for c in n.get("nodes", [])) if k]
+    if not kids: return None
+    if len(kids) == 1: kids[0]["percent"] = round(n.get("percent") or 1, 3); return kids[0]
+    return {"layout": n["layout"], "percent": round(n.get("percent") or 1, 3), "nodes": kids}
+root = w["nodes"][0] if len(w["nodes"]) == 1 else {"layout": w["layout"], "nodes": w["nodes"], "percent": 1}
+layout = conv(root)
+layout.pop("percent", None)
+json.dump(layout, open(out, "w"), indent=2); print(f"saved layout of workspace {ws} -> {out}")
+PY
+  exit $?
+fi
+
 if [ "$1" = close ]; then
   i3-msg -q '[instance="^showoff-"] kill'
+  stop_ncspot
+  i3-msg -q '[workspace="^'"${2:-10}"'$" instance="^ncspot$"] kill'
+  # also remove empty placeholders/containers left by a layout whose program never started
+  for id in $(i3-msg -t get_tree | python3 -c '
+import json, sys
+ws = sys.argv[1]
+def walk(n, inside=False):
+    inside = inside or (n.get("type") == "workspace" and n.get("name") == ws)
+    if inside and n.get("type") == "con" and not n.get("window") and not n.get("nodes"): print(n["id"])
+    for c in n.get("nodes", []) + n.get("floating_nodes", []): walk(c, inside)
+walk(json.load(sys.stdin))' "${2:-10}"); do
+    i3-msg -q "[con_id=$id] kill"
+  done
   # wait (max 3s) until the panes are really gone, so a rebuild right after works
   for _ in $(seq 30); do i3-msg -t get_tree | grep -q '"instance":"showoff-' || break; sleep 0.1; done
   exit 0
@@ -19,9 +73,15 @@ if i3-msg -t get_tree | grep -q '"instance":"showoff-btop"'; then
   exit 0
 fi
 
+# ncspot can only run once per account: if it's open elsewhere (Alt+m), quit it so it
+# restarts inside the layout (the pane swallows any window with instance "ncspot").
+stop_ncspot      # also clears orphaned ncspot processes
+
 i3-msg -q "workspace --no-auto-back-and-forth $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
 kitty --name showoff-clock -o font_size=17 -o box_drawing_scale=0.001,1.5,3,4 ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &
+kitty --name ncspot --title ncspot ncspot &
+kitty --name showoff-keys ~/.local/bin/ncspot-keys &
 kitty --name showoff-cava -o window_padding_width=0 cava -p ~/.config/cava/showoff.conf &

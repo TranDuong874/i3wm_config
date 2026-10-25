@@ -3,7 +3,6 @@
 use_nerdfont = true          # kitty maps Nerd Font icons
 gapless = true
 volnorm = true               # even out loudness between tracks
-default_keybindings = true
 
 [theme]
 background = "#1e1e2e"
