@@ -447,9 +447,9 @@ Pieces:
 | Pane | Program | Config |
 |---|---|---|
 | clock | `~/.local/bin/termclock` — greeting, `toilet -f future` digits, date, weather (wttr.in, cached 30 min in `~/.cache/termclock-weather`), ISO week + day of year | kitty `-o font_size=17 -o box_drawing_scale=0.001,1.5,3,4` (thicker digits) in `showoff` |
-| system info | `fastfetch` | `~/.config/fastfetch/config.jsonc` (small logo, short GPU names) |
+| system info | `fastfetch` | `~/.config/fastfetch/config.jsonc` (small logo, short GPU names, 20 lines); kitty `-o font_size=10` so it fits its pane |
 | Spotify | `ncspot` (kitty `--name ncspot`) | `~/snap/ncspot/common/.config/config.toml` (see [Spotify](#spotify-ncspot)) |
-| key strip | `~/.local/bin/ncspot-keys` — ncspot's main shortcuts in two lines | — |
+| key strip | `~/.local/bin/ncspot-keys` — ncspot's main shortcuts in two lines | kitty `-o font_size=10`; edit `line1`/`line2` in the script |
 | monitor | `btop` | `~/.config/btop/btop.conf` → `color_theme = "catppuccin_mocha"`, `theme_background = False` |
 | now playing | `~/.local/bin/nowplaying` — cover via `kitty +kitten icat`, title, artist, progress | shares the cover cache with eww |
 | waves | `cava -p ~/.config/cava/showoff.conf` | gradient colors, bar width/spacing |
@@ -790,6 +790,16 @@ updates the text with cursor moves.
 The i3 config has `workspace_auto_back_and_forth yes`: asking for the workspace you're
 already on sends you back. `showoff` uses `workspace --no-auto-back-and-forth 10` when
 building.
+
+### Show-off: fastfetch's top is cut off
+The pane is shorter than fastfetch's output + prompt, so it scrolls. Fewer modules in
+`~/.config/fastfetch/config.jsonc` or a smaller `font_size` for `showoff-fetch` in
+`~/.local/bin/showoff`; check the line count with `fastfetch --pipe | wc -l`.
+
+### Show-off: `^[[1;3B` junk appears in the clock / strip panes
+Keys pressed while such a pane is focused (e.g. `Alt+Shift+arrows` to move panes) were
+echoed by the terminal. The scripts now run `stty -echo`; rebuild with `Alt+Ctrl+i`,
+`Alt+Shift+i`.
 
 ### Show-off layout: gaps gone / panes stacked or tabbed
 `Alt+s` (stacked) or `Alt+w` (tabbed) was pressed on a pane. `Alt+e` returns that
