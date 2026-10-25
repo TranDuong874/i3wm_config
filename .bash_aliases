@@ -25,8 +25,11 @@ monitor() {
   esac
 }
 
-# Prompt (Catppuccin Mocha, subtle):
-#   tranduong@host  ~/path  branch
+# Prompt (Catppuccin Mocha, subtle), same layout as Ubuntu's default:
+#   tranduong@host:~/path  branch
 #   ❯
 PROMPT_DIRTRIM=3
-PS1='\n\[\e[38;2;166;227;161m\]\u\[\e[38;2;108;112;134m\]@\h\[\e[0m\]  \[\e[38;2;137;180;250m\]\w\[\e[0m\]\[\e[38;2;249;226;175m\]$(__git_ps1 "  %s")\[\e[0m\]\n\[\e[1;38;2;203;166;247m\]❯\[\e[0m\] '
+PS1='\[\e[38;2;166;227;161m\]\u\[\e[38;2;108;112;134m\]@\h:\[\e[38;2;137;180;250m\]\w\[\e[0m\]\[\e[38;2;249;226;175m\]$(__git_ps1 "  %s")\[\e[0m\]\n\[\e[38;2;203;166;247m\]❯\[\e[0m\] '
+
+# ls colors without bold (strip the "01" bold code from every entry)
+LS_COLORS=$(sed -E 's/(^|[=:;])01;/\1/g; s/;01(:|$)/\1/g' <<<"$LS_COLORS"); export LS_COLORS
