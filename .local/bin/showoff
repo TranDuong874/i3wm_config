@@ -18,7 +18,7 @@ if i3-msg -t get_tree | grep -q '"instance":"showoff-btop"'; then
 fi
 
 i3-msg -q "workspace $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
-kitty --name showoff-clock -o font_size=24 ~/.local/bin/termclock &
+kitty --name showoff-clock -o font_size=20 ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
 kitty --name showoff-music ~/.local/bin/nowplaying &

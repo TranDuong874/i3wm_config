@@ -1,13 +1,27 @@
 #!/usr/bin/env bash
-# Centered clock + date for a terminal pane (show-off workspace), normal font.
+# Centered clock for a terminal pane (show-off workspace), drawn with toilet's "future" font.
+#   termclock [font]   any toilet font, default future
+font="${1:-future}"
 tput civis; trap 'tput cnorm; exit' INT TERM
+redraw=1; trap 'redraw=1' WINCH
+last=""
 while :; do
-  cols=$(tput cols); lines=$(tput lines)
-  t=$(date +%H:%M:%S); d=$(date '+%A, %d %B %Y')
-  ((${#d} > cols - 2)) && d=$(date '+%a %d %b %Y')   # shorter date in narrow panes
-  printf '\e[H\e[2J'
-  for ((i=0; i<(lines-2)/2; i++)); do echo; done
-  printf '%*s\e[38;2;203;166;247m%s\e[0m\n' $(( (cols-${#t})/2 )) '' "$t"
-  printf '%*s\e[38;2;166;173;200m%s\e[0m' $(( (cols-${#d})/2 )) '' "$d"
+  now=$(date +%H:%M)
+  if [ "$redraw" = 1 ] || [ "$now" != "$last" ]; then
+    cols=$(tput cols); lines=$(tput lines)
+    art=$(toilet -f "$font" "$now")
+    d=$(date '+%A, %d %B %Y'); ((${#d} > cols - 2)) && d=$(date '+%a %d %b %Y')
+    h=$(( $(wc -l <<<"$art") + 2 ))
+    out="\e[H\e[2J"
+    for ((i=0; i<(lines-h)/2; i++)); do out+="\n"; done
+    while IFS= read -r l; do
+      pad=$(( (cols - ${#l}) / 2 )); ((pad<0)) && pad=0
+      out+="$(printf '%*s' $pad '')\e[38;2;203;166;247m${l}\e[0m\n"
+    done <<<"$art"
+    pad=$(( (cols - ${#d}) / 2 )); ((pad<0)) && pad=0
+    out+="\n$(printf '%*s' $pad '')\e[38;2;166;173;200m${d}\e[0m"
+    printf "%b" "$out"
+    last="$now"; redraw=0
+  fi
   sleep 1
 done

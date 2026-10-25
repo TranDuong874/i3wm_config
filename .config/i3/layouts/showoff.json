@@ -2,8 +2,8 @@
   "layout": "splith",
   "nodes": [
     { "layout": "splitv", "percent": 0.45, "nodes": [
-        { "type": "con", "percent": 0.15, "swallows": [ { "instance": "^showoff-clock$" } ] },
-        { "type": "con", "percent": 0.85, "swallows": [ { "instance": "^showoff-fetch$" } ] }
+        { "type": "con", "percent": 0.24, "swallows": [ { "instance": "^showoff-clock$" } ] },
+        { "type": "con", "percent": 0.76, "swallows": [ { "instance": "^showoff-fetch$" } ] }
     ] },
     { "layout": "splitv", "percent": 0.55, "nodes": [
         { "type": "con", "percent": 0.56, "swallows": [ { "instance": "^showoff-btop$" } ] },
