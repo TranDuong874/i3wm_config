@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # Terminal "show-off" workspace: clock, fastfetch, btop, now playing.
-#   showoff        build it on workspace 10
+#   showoff        (Alt+Shift+i) build it on workspace 10, or jump there / back
 #   showoff 3      build it on workspace 3
 # Layout: ~/.config/i3/layouts/showoff.json (panes are matched by kitty --name)
 ws="${1:-10}"
+
+# already built? then just toggle between it and the previous workspace
+if i3-msg -t get_tree | grep -q '"instance":"showoff-btop"'; then
+  cur=$(i3-msg -t get_workspaces | python3 -c 'import json,sys;print([w["name"] for w in json.load(sys.stdin) if w["focused"]][0])')
+  if [ "$cur" = "$ws" ]; then i3-msg -q workspace back_and_forth; else i3-msg -q workspace "$ws"; fi
+  exit 0
+fi
+
 i3-msg -q "workspace $ws; append_layout $HOME/.config/i3/layouts/showoff.json"
-kitty --name showoff-clock -o font_size=26 -o window_padding_width=0 ~/.local/bin/termclock &
+kitty --name showoff-clock ~/.local/bin/termclock &
 kitty --name showoff-fetch bash -c 'clear; fastfetch; exec bash' &
 kitty --name showoff-btop  btop &
-kitty --name showoff-music -o font_size=13 ~/.local/bin/nowplaying &
+kitty --name showoff-music ~/.local/bin/nowplaying &

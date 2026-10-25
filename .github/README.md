@@ -342,6 +342,7 @@ i3 -C -c ~/.config/i3/config     # no output + exit code 0 = OK
 | `Alt+d` | app launcher | `rofi -show drun` |
 | `Alt+Tab` | window switcher | `rofi -show window` |
 | `Alt+Shift+d` | dashboard (toggle) | `eww open --toggle dashboard` |
+| `Alt+Shift+i` | show-off terminal workspace (builds it on ws 10, then jumps there / back) | `~/.local/bin/showoff` |
 | `Alt+Shift+w` | desktop clock, stats, music (toggle) | `~/.config/eww/scripts/desktop.sh toggle` |
 | `Alt+Shift+q` | close window | i3 `kill` |
 
@@ -523,7 +524,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/eww.scss` | widget styling |
 | `.config/eww/scripts/osd.sh` | change volume/brightness + show popup |
 | `.config/eww/scripts/desktop.sh` | open the desktop clock + music widgets and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
-| `.local/bin/showoff` | terminal show-off workspace (`showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing. Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
+| `.local/bin/showoff` | terminal show-off workspace (`Alt+Shift+i`, or `showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing. Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
 | `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` |
 | `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
