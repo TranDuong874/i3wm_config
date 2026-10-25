@@ -1,13 +1,13 @@
-/* Edge: sharp, compact, terminal-style sidebar (Solarized Dark) */
+/* Edge: sharp, compact, terminal-style sidebar (Catppuccin Mocha) */
 * {
-  bg:       #002b36;   /* base03 */
-  surface:  #073642;   /* base02 */
-  line:     #0a4552;
-  fg:       #93a1a1;   /* base1  */
-  fg-dim:   #586e75;   /* base01 */
-  accent:   #b58900;   /* yellow */
-  accent-2: #2aa198;   /* cyan   */
-  urgent:   #dc322f;   /* red    */
+  bg:       #1e1e2e;   /* base     */
+  surface:  #313244;   /* surface0 */
+  line:     #45475a;
+  fg:       #cdd6f4;   /* text     */
+  fg-dim:   #6c7086;   /* overlay0 */
+  accent:   #cba6f7;   /* mauve    */
+  accent-2: #89b4fa;   /* blue     */
+  urgent:   #f38ba8;   /* red      */
 
   background-color: transparent;
   text-color: @fg;

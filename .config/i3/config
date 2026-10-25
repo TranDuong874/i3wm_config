@@ -36,11 +36,10 @@ exec --no-startup-id xss-lock --transfer-sleep-lock -- i3lock --nofork
 exec --no-startup-id nm-applet
 
 # Use pactl to adjust volume in PulseAudio.
-set $refresh_i3status killall -SIGUSR1 i3status
-bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +10% && $refresh_i3status
-bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -10% && $refresh_i3status
-bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
-bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +2%
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -2%
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle
 
 # use these keys for focus, movement, and resize directions when reaching for
 # the arrows is not convenient
@@ -200,21 +199,14 @@ bindsym $mod+r mode "resize"
 
 # Start i3bar to display a workspace bar (plus the system information i3status
 # finds out, if available)
-bar {
-        status_command i3status
-}
+# bar {
+#         status_command i3status
+# }
 
-#######################################################################
-# automatically start i3-config-wizard to offer the user to create a
-# keysym-based config which used their favorite modifier (alt or windows)
-#
-# i3-config-wizard will not launch if there already is a config file
-# in ~/.config/i3/config (or $XDG_CONFIG_HOME/i3/config if set) or
-# ~/.i3/config.
-#
-# Please remove the following exec line:
-#######################################################################
-exec i3-config-wizard
+exec_always --no-startup-id ~/.config/polybar/launch.sh
+exec --no-startup-id picom --config ~/.config/picom/picom.conf
+exec --no-startup-id dunst
+
 
 #######################################################################
 # CUSTOM SCRIPTS
@@ -238,9 +230,12 @@ default_border pixel 2
 default_floating_border pixel 2
 
 # class                 border  bg      text    indicator child_border
-client.focused          #89b4fa #89b4fa #1e1e2e #89b4fa   #89b4fa
+client.focused          #cba6f7 #cba6f7 #1e1e2e #f5c2e7   #cba6f7
 client.unfocused        #313244 #313244 #cdd6f4 #313244   #313244
 client.focused_inactive #313244 #313244 #cdd6f4 #313244   #313244
+client.urgent           #f38ba8 #f38ba8 #1e1e2e #f38ba8   #f38ba8
+client.placeholder      #1e1e2e #1e1e2e #cdd6f4 #1e1e2e   #1e1e2e
+client.background       #1e1e2e
 
 # wallpaper
 exec_always --no-startup-id feh --bg-fill ~/wallpapers/pexels-frostroomhead-17807337.jpg
@@ -271,3 +266,15 @@ bindsym $mod+c mode "$mode_ctl"
 
 for_window [class="Pavucontrol"]     floating enable, resize set 820 520, move position center
 for_window [class="Blueman-manager"] floating enable, resize set 720 480, move position center
+for_window [class="Gnome-control-center"] floating enable, resize set 1000 700, move position center
+
+# --- screenshots ---
+bindsym Print       exec --no-startup-id flameshot gui
+bindsym Shift+Print exec --no-startup-id flameshot full -c
+bindsym Ctrl+Print  exec --no-startup-id flameshot screen -c
+
+bindsym $mod+Shift+s    exec --no-startup-id flameshot gui
+bindsym $mod+Ctrl+s     exec --no-startup-id flameshot screen -c
+
+for_window [class="flameshot"] floating enable, border none
+
