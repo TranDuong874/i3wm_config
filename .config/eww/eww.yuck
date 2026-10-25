@@ -16,6 +16,7 @@
 (deflisten music_artist :initial "" "playerctl --follow metadata --format '{{ artist }}' 2>/dev/null")
 (deflisten music_status :initial "" "playerctl --follow status 2>/dev/null")
 (deflisten music_cover  :initial "" "~/.config/eww/scripts/cover.sh")
+(deflisten cava_bars    :initial "[]" "~/.config/eww/scripts/cava.sh")
 (defpoll music_time :interval "1s" :initial ""
   "playerctl metadata --format '{{ duration(position) }} / {{ duration(mpris:length) }}' 2>/dev/null || echo")
 (defpoll music_pos  :interval "1s" :initial "0"
@@ -87,6 +88,10 @@
     (box :orientation "v" :space-evenly false :hexpand true :valign "center" :spacing 2
       (label :class "music-title"  :halign "start" :limit-width 28 :text music_title)
       (label :class "music-artist" :halign "start" :limit-width 32 :text music_artist)
+      (box :class "cava" :orientation "h" :space-evenly true :spacing 3 :height 26
+           :visible {music_status == "Playing"}
+        (for v in cava_bars
+          (progress :class "cava-bar" :orientation "v" :flipped true :value v)))
       (progress :class "bar music-bar" :value music_pos :orientation "h")
       (box :orientation "h" :space-evenly false
         (label :class "dim music-time" :halign "start" :hexpand true :text music_time)

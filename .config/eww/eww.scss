@@ -117,6 +117,9 @@ calendar {
 .cover-icon { color: $overlay0; font-size: 36px; }
 .music-title { font-size: 15px; }
 .music-bar { margin: 8px 0 2px 0; }
+.cava { margin-top: 8px; }
+.cava-bar trough { background-color: transparent; min-width: 4px; min-height: 2px; }
+.cava-bar progress { background-color: $mauve; min-width: 4px; }
 .music-time { font-size: 11px; }
 
 // ---- power menu ----

@@ -77,10 +77,10 @@ sudo apt install -y \
   i3 i3lock xss-lock dex \
   polybar rofi dunst picom feh \
   kitty flameshot autorandr \
-  brightnessctl playerctl pavucontrol pulseaudio-utils \
+  brightnessctl playerctl pavucontrol pulseaudio-utils cava \
   blueman network-manager-gnome \
   libnotify-bin imagemagick x11-utils x11-xserver-utils xinput \
-  git curl unzip fontconfig fonts-dejavu \
+  git curl unzip fontconfig fonts-dejavu btop fastfetch toilet \
   yaru-theme-gtk yaru-theme-icon gnome-themes-extra \
   build-essential pkg-config libgtk-3-dev libdbusmenu-gtk3-dev
 ```
@@ -526,6 +526,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.local/bin/showoff` | terminal show-off workspace (`showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing. Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
 | `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` |
 | `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
+| `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock, logout, suspend, reboot, shutdown |
 | `.local/bin/lock` | blurred-wallpaper i3lock (`--prepare` = only build image) |
