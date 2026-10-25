@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Power menu (eww window + i3 "power" key mode).
+#   powermenu           toggle the menu
+#   powermenu <action>  close it and run: lock | logout | suspend | reboot | shutdown
+#   powermenu close     just close it
+
+close() {
+  eww close powermenu >/dev/null 2>&1
+  i3-msg -q mode default
+}
+
+case "${1:-toggle}" in
+  toggle)
+    if eww active-windows 2>/dev/null | grep -q '^powermenu'; then
+      close
+    else
+      eww open powermenu && i3-msg -q mode power
+    fi ;;
+  close)    close ;;
+  lock)     close; loginctl lock-session ;;
+  logout)   close; i3-msg -q exit ;;
+  suspend)  close; systemctl suspend ;;
+  reboot)   close; systemctl reboot ;;
+  shutdown) close; systemctl poweroff ;;
+  *) echo "usage: powermenu [toggle|close|lock|logout|suspend|reboot|shutdown]" >&2; exit 1 ;;
+esac

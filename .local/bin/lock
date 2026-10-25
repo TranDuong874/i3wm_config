@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Lock screen: blurred wallpaper tinted with Catppuccin base (#1e1e2e).
+# Used by xss-lock (suspend / loginctl lock-session) and the power menu.
+#   lock            lock now
+#   lock --prepare  only (re)build the cached image for the current screen size
+
+WALL="$HOME/wallpapers/pexels-frostroomhead-17807337.jpg"
+size=$(xdpyinfo | awk '/dimensions:/{print $2}')          # e.g. 1920x1080 or 3840x1080
+IMG="${XDG_CACHE_HOME:-$HOME/.cache}/lockscreen-$size.png"
+
+if [ -f "$WALL" ] && { [ ! -f "$IMG" ] || [ "$WALL" -nt "$IMG" ]; }; then
+  mkdir -p "$(dirname "$IMG")"
+  # shrink + blur + enlarge = fast strong blur, then darken toward #1e1e2e
+  convert "$WALL" -resize "${size}^" -gravity center -extent "$size" \
+          -scale 10% -blur 0x2 -scale 1000% \
+          -fill '#1e1e2e' -colorize 45% "$IMG"
+fi
+
+[ "$1" = "--prepare" ] && exit 0
+
+if [ -f "$IMG" ]; then
+  exec i3lock --nofork --ignore-empty-password --show-failed-attempts --image="$IMG"
+else
+  exec i3lock --nofork --ignore-empty-password --show-failed-attempts --color=1e1e2e
+fi

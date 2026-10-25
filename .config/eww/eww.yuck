@@ -1,0 +1,121 @@
+;; eww widgets: calendar, osd, dashboard, powermenu (Catppuccin Mocha, sharp)
+
+;; ---------- data ----------
+(defpoll time_hm   :interval "1s"  "date +%H:%M")
+(defpoll time_s    :interval "1s"  "date +%S")
+(defpoll date_long :interval "60s" "date '+%A, %d %B %Y'")
+(defpoll uptime    :interval "60s" "uptime -p | sed 's/^up //'")
+(defpoll whoami    :interval "1h"  "echo \"$USER@$(hostname -s)\"")
+
+(defpoll vol    :interval "1s" :initial "0"
+  "pactl get-sink-volume @DEFAULT_SINK@ | grep -oE '[0-9]+%' | head -1 | tr -d %")
+(defpoll bright :interval "1s" :initial "0"
+  "brightnessctl -m | cut -d, -f4 | tr -d %")
+
+(deflisten music_title  :initial "" "playerctl --follow metadata --format '{{ title }}' 2>/dev/null")
+(deflisten music_artist :initial "" "playerctl --follow metadata --format '{{ artist }}' 2>/dev/null")
+(deflisten music_status :initial "" "playerctl --follow status 2>/dev/null")
+
+;; set by scripts/osd.sh
+(defvar osd_icon  "󰕾")
+(defvar osd_value 0)
+(defvar osd_label "volume")
+
+;; ---------- small widgets ----------
+(defwidget stat [icon label value]
+  (box :class "stat" :orientation "h" :space-evenly false :spacing 10
+    (label :class "stat-icon" :text icon)
+    (box :orientation "v" :space-evenly false :hexpand true
+      (box :orientation "h" :space-evenly false
+        (label :class "stat-label" :halign "start" :hexpand true :text label)
+        (label :class "stat-value" :halign "end" :text "${round(value, 0)}%"))
+      (progress :class "bar" :value {value} :orientation "h"))))
+
+(defwidget slider [icon value onchange]
+  (box :class "slider" :orientation "h" :space-evenly false :spacing 10
+    (label :class "stat-icon" :text icon)
+    (scale :hexpand true :min 0 :max 101 :value value :onchange onchange)
+    (label :class "stat-value" :text "${value}%")))
+
+(defwidget music []
+  (box :class "music" :orientation "h" :space-evenly false :spacing 12
+    (label :class "music-icon" :text "󰎈")
+    (box :orientation "v" :space-evenly false :hexpand true
+      (label :class "music-title"  :halign "start" :limit-width 48
+             :text {music_title == "" ? "nothing playing" : music_title})
+      (label :class "music-artist" :halign "start" :limit-width 48 :text music_artist))
+    (box :class "music-buttons" :orientation "h" :space-evenly false :spacing 4
+      (button :onclick "playerctl previous"   "󰒮")
+      (button :onclick "playerctl play-pause" {music_status == "Playing" ? "󰏤" : "󰐊"})
+      (button :onclick "playerctl next"       "󰒭"))))
+
+(defwidget power-button [icon label key action]
+  (button :class "power-button ${action}" :onclick "~/.local/bin/powermenu ${action} &"
+    (box :orientation "v" :space-evenly false :spacing 6
+      (label :class "power-icon" :text icon)
+      (label :class "power-label" :text label)
+      (label :class "power-key" :text "[${key}]"))))
+
+;; ---------- calendar (click the clock in polybar) ----------
+(defwindow calendar
+  :monitor "<primary>"
+  :geometry (geometry :x "16px" :y "38px" :width "280px" :height "0px" :anchor "top right")
+  :stacking "fg"
+  :wm-ignore true
+  (box :class "popup" :orientation "v" :space-evenly false
+    (label :class "popup-title" :halign "start" :text date_long)
+    (calendar :class "cal")))
+
+;; ---------- osd (volume / brightness keys) ----------
+(defwindow osd
+  :monitor "<primary>"
+  :geometry (geometry :y "-80px" :width "320px" :height "0px" :anchor "bottom center")
+  :stacking "overlay"
+  :wm-ignore true
+  (box :class "popup osd" :orientation "h" :space-evenly false :spacing 12
+    (label :class "osd-icon" :text osd_icon)
+    (progress :class "bar" :hexpand true :valign "center" :value osd_value)
+    (label :class "osd-value" :text "${osd_value}%")))
+
+;; ---------- dashboard ($mod+Shift+d / polybar) ----------
+(defwindow dashboard
+  :monitor "<primary>"
+  :geometry (geometry :width "760px" :height "0px" :anchor "center")
+  :stacking "fg"
+  :wm-ignore true
+  (box :class "popup dashboard" :orientation "v" :space-evenly false :spacing 16
+    (box :orientation "h" :space-evenly false :spacing 16
+      ;; left: clock + info
+      (box :class "card clock-card" :orientation "v" :space-evenly false :width 220
+        (box :orientation "h" :space-evenly false :halign "start"
+          (label :class "clock" :text time_hm)
+          (label :class "clock-s" :valign "end" :text time_s))
+        (label :class "date" :halign "start" :wrap true :text date_long)
+        (label :class "dim" :halign "start" :text "󰔟 ${uptime}")
+        (label :class "dim" :halign "start" :text "󰀄 ${whoami}"))
+      ;; middle: calendar
+      (box :class "card" (calendar :class "cal"))
+      ;; right: stats + sliders
+      (box :class "card" :orientation "v" :space-evenly false :spacing 10 :hexpand true
+        (stat :icon "󰍛" :label "cpu"  :value {EWW_CPU.avg})
+        (stat :icon "󰘚" :label "ram"  :value {EWW_RAM.used_mem_perc})
+        (stat :icon "󰋊" :label "disk" :value {EWW_DISK["/"].used_perc})
+        (stat :icon "󰁹" :label "battery" :value {EWW_BATTERY.BAT0.capacity})
+        (slider :icon "󰕾" :value vol    :onchange "pactl set-sink-volume @DEFAULT_SINK@ {}%")
+        (slider :icon "󰃠" :value bright :onchange "brightnessctl -q set {}%")))
+    (box :class "card" (music))))
+
+;; ---------- power menu ($mod+Shift+e / polybar) ----------
+(defwindow powermenu
+  :monitor "<primary>"
+  :geometry (geometry :width "0px" :height "0px" :anchor "center")
+  :stacking "overlay"
+  :wm-ignore true
+  (box :class "popup powermenu" :orientation "v" :space-evenly false :spacing 12
+    (label :class "popup-title" :halign "start" :text "power  ·  esc to cancel")
+    (box :orientation "h" :space-evenly true :spacing 8
+      (power-button :icon "󰌾" :label "lock"     :key "l" :action "lock")
+      (power-button :icon "󰍃" :label "logout"   :key "e" :action "logout")
+      (power-button :icon "󰤄" :label "suspend"  :key "s" :action "suspend")
+      (power-button :icon "󰜉" :label "reboot"   :key "r" :action "reboot")
+      (power-button :icon "󰐥" :label "shutdown" :key "p" :action "shutdown"))))
