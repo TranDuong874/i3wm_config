@@ -73,12 +73,14 @@ if [ ! -x "$I3LOCK_COLOR" ]; then
   exec i3lock --nofork --ignore-empty-password --show-failed-attempts --image="$IMG"
 fi
 
-# i3lock-color multiplies every position/size by dpi/96 (Xft.dpi, else the X screen's
-# real DPI), so divide ours by the same factor to land where the background has them.
-DPI=$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/{printf "%d", $2}')
-[ -z "$DPI" ] && DPI=$(xdpyinfo | awk '/resolution:/{split($2,r,"x"); print r[2]; exit}')
+# i3lock-color multiplies every position/size by dpi/96, so divide ours by the same
+# factor. Compute the DPI exactly like i3lock-color does (dpi.c): Xft.dpi rounded, else
+# floor(screen height px * 25.4 / screen height mm). A 1-DPI mismatch already shifts
+# things ~10 px, so don't use xdpyinfo's rounded "resolution" value.
+DPI=$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/{printf "%d", $2 + 0.5}')
+[ -z "$DPI" ] && DPI=$(xdpyinfo | awk '/dimensions:/{split($2,p,"x"); gsub(/[()]/,"",$4); split($4,m,"x"); printf "%d", p[2] * 25.4 / m[2]}')
 { [ -z "$DPI" ] || [ "$DPI" -le 0 ]; } && DPI=96
-s() { echo $(( $1 * 96 / DPI )); }
+s() { awk -v v="$1" -v d="$DPI" 'BEGIN{printf "%.2f", v * 96 / d}'; }
 
 T='cdd6f4ff'; DIM='a6adc8ff'; MAUVE='cba6f7ff'; PINK='f5c2e7ff'; RED='f38ba8ff'; BLUE='89b4faff'; NONE='00000000'
 exec "$I3LOCK_COLOR" --nofork --ignore-empty-password \
@@ -94,7 +96,7 @@ exec "$I3LOCK_COLOR" --nofork --ignore-empty-password \
   \
   --greeter-text="$USER" --greeter-pos="$(s $cx):$(s $(( cy + 82 )))" \
   \
-  --indicator --ind-pos="$(s $(( cx + 11 ))):$(s $(( AV_Y + 5 )))" \
+  --indicator --ind-pos="$(s $cx):$(s $AV_Y)" \
   --radius=$(s $(( AV_R + RING_W / 2 ))) --ring-width=$(s $RING_W) \
   --ring-color=$MAUVE --keyhl-color=$T --bshl-color=$RED \
   --ringver-color=$BLUE --ringwrong-color=$RED \

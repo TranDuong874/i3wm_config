@@ -671,12 +671,15 @@ without re-login: `setsid xss-lock --transfer-sleep-lock -- ~/.local/bin/lock &`
 `~/.local/bin/i3lock-color` is missing, so `lock` fell back to plain i3lock → build it
 ([step 6](#i3lock-color-the-gnome-style-lock-screen)).
 
-### Lock screen: text or ring in the wrong place
-i3lock-color multiplies every position by `dpi / 96` (from `Xft.dpi`, else the X
-screen's physical DPI). `lock` divides its coordinates by the same factor, so it lines up
-with the background on any DPI. Check what X reports: `xdpyinfo | grep resolution`.
-The ring also lands ~11 px left / 5 px up of the given `--ind-pos`, so `lock` adds that
-(`cx + 11`, `AV_Y + 5`). If you change the avatar size, re-check it in Xephyr.
+### Lock screen: ring not on the avatar / text off-center
+i3lock-color multiplies every position by `dpi / 96`. It gets the DPI from `Xft.dpi`, or
+else as **floor(screen height px × 25.4 / screen height mm)** — *not* the rounded value
+`xdpyinfo` prints under "resolution". Even 95 vs 96 shifts everything ~10 px at the
+center of a 1080p screen. `lock` computes the DPI the same way and divides its
+coordinates by it, so the ring (drawn by i3lock-color) lands exactly on the avatar
+(drawn into the background). Never "fix" an offset seen in a Xephyr test by nudging
+coordinates — Xephyr's DPI differs from the real screen's. Check the real value:
+`xdpyinfo | grep dimensions` → 1080 px / 285 mm × 25.4 = 96.
 
 ### Lock screen blur looks blocky / pixelated
 Shrinking and re-enlarging with `-scale` copies pixels → visible squares. `lock` uses
