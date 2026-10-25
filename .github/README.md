@@ -5,7 +5,7 @@ Everything is themed **Catppuccin Mocha** with **sharp corners**.
 
 This README is a full, start-to-finish tutorial. Follow it top to bottom on a fresh
 machine and you should end up with the same desktop, without hitting the problems
-I hit the first time (they are all collected in [Troubleshooting](#11-troubleshooting--lessons-learned)).
+I hit the first time (they are all collected in [Troubleshooting](#13-troubleshooting--lessons-learned)).
 
 | Part | Tool |
 |---|---|
@@ -14,7 +14,10 @@ I hit the first time (they are all collected in [Troubleshooting](#11-troublesho
 | Bar | polybar |
 | App launcher / window switcher | rofi (custom "edge" sidebar theme) |
 | Notifications | dunst |
-| Widgets: calendar, volume/brightness popup, dashboard, power menu | eww (built from source) |
+| Popups: calendar, volume/brightness OSD, dashboard, power menu | eww (built from source) |
+| Desktop widgets on the wallpaper: clock, system stats, calendar, music + visualizer | eww + cava |
+| "Show-off" terminal workspace: clock + weather, fastfetch, btop, now playing + cover, visualizer | kitty + i3 layout (`Alt+Shift+i`) |
+| Shell prompt | bash `PS1` (Mocha colors, git branch) |
 | Terminal | kitty |
 | File manager (terminal) | yazi |
 | Screenshots | flameshot |
@@ -36,11 +39,13 @@ I hit the first time (they are all collected in [Troubleshooting](#11-troublesho
 7. [Things that are NOT in git (run once)](#7-things-that-are-not-in-git-run-once)
 8. [Machine-specific values you must check](#8-machine-specific-values-you-must-check)
 9. [First login and checking everything works](#9-first-login-and-checking-everything-works)
-10. [Keybindings and where they are configured](#10-keybindings-and-where-they-are-configured)
-11. [Troubleshooting / lessons learned](#11-troubleshooting--lessons-learned)
-12. [File map](#12-file-map)
-13. [Color palette](#13-color-palette)
-14. [Day-to-day: saving changes to this repo](#14-day-to-day-saving-changes-to-this-repo)
+10. [Desktop widgets and the show-off workspace](#10-desktop-widgets-and-the-show-off-workspace)
+11. [Shell: prompt, cursor, hostname](#11-shell-prompt-cursor-hostname)
+12. [Keybindings and where they are configured](#12-keybindings-and-where-they-are-configured)
+13. [Troubleshooting / lessons learned](#13-troubleshooting--lessons-learned)
+14. [File map](#14-file-map)
+15. [Color palette](#15-color-palette)
+16. [Day-to-day: saving changes to this repo](#16-day-to-day-saving-changes-to-this-repo)
 
 ---
 
@@ -219,6 +224,10 @@ yazi.ya pkg install
 
 # lock screen image (also rebuilt automatically when needed)
 ~/.local/bin/lock --prepare
+
+# optional: shorter hostname, so the prompt isn't tranduong@tranduong-Legion-S7-15ACH6
+sudo hostnamectl set-hostname Legion-S7-15ACH6
+sudo sed -i 's/<old-hostname>/Legion-S7-15ACH6/' /etc/hosts   # keep /etc/hosts in sync, see §11
 ```
 
 Also already handled by tracked files, but good to know:
@@ -242,6 +251,9 @@ These are hard-coded for my laptop. On another machine, check each one.
 | **Monitor profiles** | `~/.config/autorandr/{both,docked,mobile}` | must be **re-saved on every machine** (they contain the monitors' EDID) — see below |
 | **Wallpaper** | `~/wallpapers/pexels-frostroomhead-17807337.jpg` (tracked), referenced in i3 config, `autorandr/postswitch`, `~/.local/bin/lock` | change all three if you change the file |
 | **Mod key** | `~/.config/i3/config` line 1: `set $mod Mod1` (Alt) | `Mod4` = Super/Windows key |
+| **Battery name in eww** | `~/.config/eww/eww.yuck`: `EWW_BATTERY.BAT0` (dashboard **and** `desktop-stats`) | `ls /sys/class/power_supply/` |
+| **Weather city** (show-off clock) | guessed from your IP by wttr.in; to pin it add `export TERMCLOCK_CITY=Hanoi` to `~/.profile` | `curl 'wttr.in/?format=%l'` shows what it guesses |
+| **Prefer LAN over Wi-Fi** | NetworkManager connection, not a file | see [LAN or Wi-Fi](#am-i-on-lan-or-wi-fi) |
 
 ### Finding the right backlight device
 
@@ -310,7 +322,9 @@ Replace `eDP` / `DP-1-0` with your names from `xrandr`. Notes:
 | Brightness keys | screen dims + popup bar; polybar 󰃠 % changes |
 | Click the clock | calendar popup top-right |
 | `Alt+Shift+d` / 󰕮 in bar | dashboard (clock, calendar, cpu/ram/disk/battery, sliders, music) |
-| on the wallpaper | big clock (top left), system stats + calendar cards (top right), music card with album art (bottom left, hidden when nothing plays); `Alt+Shift+w` hides/shows them |
+| On the wallpaper (empty workspace) | big clock (top left), system + calendar cards (top right), music card with cover (bottom left, only while something plays) with moving visualizer bars; `Alt+Shift+w` hides/shows them |
+| `Alt+Shift+i` | show-off workspace 10: clock + weather, fastfetch, btop, now playing with cover, cava waves. Press again to go back; `Alt+Ctrl+i` closes it |
+| New terminal | prompt `user@host:~/path  branch` on one line, `❯` on the next; blinking block cursor |
 | `Alt+Shift+e` / ⏻ in bar | power menu; `Esc` closes it |
 | `Print` | flameshot area select, saved to `~/Pictures/Screenshots` |
 | `notify-send test hello` | Mocha notification with icon, top-right |
@@ -327,7 +341,114 @@ i3 -C -c ~/.config/i3/config     # no output + exit code 0 = OK
 
 ---
 
-## 10. Keybindings and where they are configured
+## 10. Desktop widgets and the show-off workspace
+
+### Desktop widgets (eww, on the wallpaper)
+
+```
+ 23:50 39                                   ┃ system
+ Sunday, 25 October 2026                    ┃ 󰍛 cpu  18%  ━━──────
+                                            ┃ 󰘚 ram  40%  ━━━─────  ...
+                                            ┃ calendar
+                                            ┃ ‹ October ›  ‹ 2026 ›  ...
+ ┃ [cover]  Song title
+ ┃          Artist
+ ┃          ▖▗▌▌▖▗▌▖  (visualizer, only while playing)
+ ┃          ━━━━━━━──  2:56 / 3:32   ⏮ ⏸ ⏭
+```
+
+| Widget (eww window) | Where | Notes |
+|---|---|---|
+| `desktop-clock` | top left | time, seconds, date |
+| `desktop-stats` | top right | cpu / ram / disk / battery + uptime, calendar card under it |
+| `desktop-music` | bottom left | cover, title, artist, cava bars, progress, buttons; hidden when nothing plays |
+
+How it fits together:
+
+- `~/.config/eww/scripts/desktop.sh` opens all three at login (i3 `exec`) and after every
+  monitor switch (`autorandr/postswitch`). `desktop.sh toggle` = `Alt+Shift+w`.
+- **They must sit behind windows.** eww's `:stacking "bg"` is ignored on i3 for
+  `:wm-ignore true` windows, so `desktop.sh` lowers them itself with `XLowerWindow`
+  (python `ctypes`, no extra package). If they ever cover your apps, run `desktop.sh` again.
+- picom must not blur/shadow the transparent widget windows (you get a grey box/strip):
+  see `shadow-exclude` / `blur-background-exclude` in `picom.conf`.
+- Album art: `scripts/cover.sh` downloads Spotify's https cover once into
+  `~/.cache/eww/covers/` (keeps the newest 50).
+- Visualizer: `scripts/cava.sh` runs `cava -p ~/.config/cava/eww.conf` (raw output,
+  28 bars, values 0–100) and turns each frame into a JSON list; eww draws one thin vertical
+  `progress` per value. Requires `cava` (in the apt list). For about a second after music
+  starts all bars can sit near the top while cava auto-adjusts sensitivity — normal.
+- Positions: `:geometry` in `eww.yuck`. With `:anchor "... right"` or `"bottom ..."`,
+  offsets go **outward**, so use **negative** `x`/`y` to move inward.
+
+### Show-off workspace (`Alt+Shift+i`)
+
+A tiled "dashboard with more information" made of kitty panes, built on **workspace 10**:
+
+```
+┌───────────────────────────────┬──────────────────────────────────┐
+│     good night, tranduong     │ btop (Catppuccin theme)           │
+│      ┏━┓┏━┓ ╺┓ ┏━┓  (future)   │                                   │
+│   Monday, 26 October 2026     │                                   │
+│ 󰖑 27°C haze · Hanoi · week 44 ├──────────────────────────────────┤
+├───────────────────────────────┤ [cover]  ♪ Song · Artist          │
+│ fastfetch (small logo, Mocha) │          ━━━━━━━──  1:08 / 3:11   │
+│                               ├──────────────────────────────────┤
+│ ❯                             │ ▂▅▇█▆▃ cava (mauve→pink→blue)     │
+└───────────────────────────────┴──────────────────────────────────┘
+```
+
+| Key / command | Does |
+|---|---|
+| `Alt+Shift+i` / `showoff` | build it on ws 10; if it already exists, jump to it, or back to where you were |
+| `Alt+Ctrl+i` / `showoff close` | close all its panes (waits until they're gone); i3 removes the empty workspace |
+| `showoff 3` | build it on another workspace instead |
+
+Pieces:
+
+| Pane | Program | Config |
+|---|---|---|
+| clock | `~/.local/bin/termclock` — greeting, `toilet -f future` digits, date, weather (wttr.in, cached 30 min in `~/.cache/termclock-weather`), ISO week + day of year | kitty `-o font_size=17 -o box_drawing_scale=0.001,1.5,3,4` (thicker digits) in `showoff` |
+| system info | `fastfetch` | `~/.config/fastfetch/config.jsonc` (small logo, short GPU names) |
+| monitor | `btop` | `~/.config/btop/btop.conf` → `color_theme = "catppuccin_mocha"`, `theme_background = False` |
+| now playing | `~/.local/bin/nowplaying` — cover via `kitty +kitten icat`, title, artist, progress | shares the cover cache with eww |
+| waves | `cava -p ~/.config/cava/showoff.conf` | gradient colors, bar width/spacing |
+
+The layout is `~/.config/i3/layouts/showoff.json` (`append_layout`); each placeholder
+"swallows" a kitty started with `--name showoff-<pane>`. Change the pane sizes with the
+`percent` values there. To fix a messed-up layout (e.g. after `Alt+s`/`Alt+w`):
+`Alt+Ctrl+i` then `Alt+Shift+i`.
+
+---
+
+## 11. Shell: prompt, cursor, hostname
+
+**Prompt** — set at the end of `~/.bash_aliases` (read after `.bashrc`, so it overrides
+Ubuntu's default `PS1`):
+
+```
+tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, blue path, yellow git branch
+❯                                                    ← mauve, you type here
+```
+
+- No blank line before the prompt, `user@host:path` spacing like Ubuntu's default.
+- `PROMPT_DIRTRIM=3` shortens deep paths to `…/a/b/c`.
+- The branch comes from `__git_ps1` (ships with git on Ubuntu).
+- The same block strips **bold** from `LS_COLORS`, so `ls` folders are colored but not bold.
+- Colors are 24-bit escapes (`\e[38;2;R;G;Bm`); keep every escape inside `\[ \]` or line
+  editing breaks.
+
+**Cursor** — `~/.config/kitty/kitty.conf`: `cursor_shape block`,
+`cursor_blink_interval -1` (GNOME Terminal style) and `shell_integration no-cursor`
+(otherwise kitty's shell integration switches it to a beam at the prompt). Options:
+`block` / `beam` / `underline`. Reload kitty: `Ctrl+Shift+F5`.
+
+**Hostname** — the prompt shows `\h`. Rename with `hostnamectl` *and* update
+`/etc/hosts` (see §7). Terminals opened before the rename keep showing the old name.
+
+---
+
+## 12. Keybindings and where they are configured
 
 `$mod` = **Alt** (`set $mod Mod1` in `~/.config/i3/config`). All keybindings live in
 **`~/.config/i3/config`** unless noted. Mouse actions in the bar live in
@@ -383,7 +504,7 @@ i3 -C -c ~/.config/i3/config     # no output + exit code 0 = OK
 | `Alt+Shift+1…0` | move window to workspace |
 | `Alt+h` / `Alt+v` | next window splits horizontally / vertically |
 | `Alt+f` | fullscreen |
-| `Alt+s` / `Alt+w` / `Alt+e` | stacked / tabbed / split layout |
+| `Alt+s` / `Alt+w` / `Alt+e` | stacked / tabbed / split layout of the focused container (stacked/tabbed hide the gaps; `Alt+e` returns to split) |
 | `Alt+Shift+Space` | float / tile window |
 | `Alt+Space` | focus between floating and tiled |
 | `Alt+a` / `Alt+Shift+a` | focus parent / child container |
@@ -417,12 +538,13 @@ i3 -C -c ~/.config/i3/config     # no output + exit code 0 = OK
 ### Things started automatically at login (i3 config)
 
 `dex` (XDG autostart), `xss-lock` → `~/.local/bin/lock`, `nm-applet`, `blueman-applet`,
-polybar (`exec_always launch.sh`), `picom`, `dunst`, `eww daemon`, `feh` wallpaper
-(`exec_always`), `autorandr --change`, touchpad `xinput` settings (`exec_always`).
+polybar (`exec_always launch.sh`), `picom`, `dunst`, `eww daemon`, desktop widgets
+(`~/.config/eww/scripts/desktop.sh`), `feh` wallpaper (`exec_always`),
+`autorandr --change`, touchpad `xinput` settings (`exec_always`).
 
 ---
 
-## 11. Troubleshooting / lessons learned
+## 13. Troubleshooting / lessons learned
 
 Every problem below actually happened while building this setup.
 
@@ -497,11 +619,60 @@ newt only knows 16 terminal color names (`black`, `magenta`, `default`, …), so
 come from kitty's palette. `default` = terminal background.
 
 ### "Am I on LAN or Wi-Fi?"
-Both can be connected; Linux uses the route with the lowest metric (wired ≈ 20100 <
-Wi-Fi ≈ 20600), so LAN wins automatically. Check: `ip route show default`.
+Both can be connected; Linux sends traffic over the default route with the **lowest
+metric**. Check: `ip route show default`.
+NetworkManager adds ~20000 to a connection whose internet check fails, so the winner can
+flip: once LAN was 20100 vs Wi-Fi 20600 (LAN used), later Wi-Fi was 600 vs LAN 20100
+(**Wi-Fi used** even with the cable in). Cloudflare WARP/Tailscale ride on whichever wins.
+- Use LAN now: `nmcli radio wifi off`
+- Always prefer LAN (use your connection name from `nmcli connection`):
+  ```bash
+  nmcli connection modify netplan-enx00e04c155b17 ipv4.route-metric 100 ipv6.route-metric 100
+  nmcli connection up netplan-enx00e04c155b17
+  ```
 The polybar network module only shows **wireless** (`interface-type = wireless`), so it
-displays the Wi-Fi name even when traffic goes over LAN. Turn Wi-Fi off:
-`nmcli radio wifi off`.
+displays the Wi-Fi name even when traffic goes over LAN.
+
+### Desktop widgets cover my windows
+eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
+`~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
+
+### Grey box / blurry strip around a desktop widget
+picom blurs and shadows the whole (transparent) widget window. Add it to
+`shadow-exclude` and `blur-background-exclude` by name (`"name = 'Eww - desktop-…'"`),
+then restart picom.
+
+### A widget is half off the screen
+With a right/bottom anchor, a positive `x`/`y` pushes it **outward**. Use `-56px`.
+
+### Text widget truncated with "…"
+eww sizes the window to its first content; give big labels a `:width` in `:geometry`.
+
+### Progress bar made of `━` doesn't show (bash script)
+`tr ' ' '━'` is byte-based and mangles multi-byte characters. Use bash:
+`bar=$(printf "%${n}s" ""); bar=${bar// /━}`.
+
+### Album cover disappears in the kitty pane
+In kitty, clearing the screen (`\e[2J`) also deletes images. `nowplaying` therefore
+only clears + redraws the cover when the track changes or the pane is resized, and
+updates the text with cursor moves.
+
+### `Alt+Shift+i` jumps to the previous workspace instead of workspace 10
+The i3 config has `workspace_auto_back_and_forth yes`: asking for the workspace you're
+already on sends you back. `showoff` uses `workspace --no-auto-back-and-forth 10` when
+building.
+
+### Show-off layout: gaps gone / panes stacked or tabbed
+`Alt+s` (stacked) or `Alt+w` (tabbed) was pressed on a pane. `Alt+e` returns that
+container to split; for a clean reset `Alt+Ctrl+i` then `Alt+Shift+i`.
+
+### Rebuilding right after closing does nothing
+Windows take a moment to close; if `showoff` still sees them it only switches
+workspace. `showoff close` now waits until all panes are gone.
+
+### Prompt still shows the old hostname / `sudo: unable to resolve host`
+Old terminals keep the old `\h` — open a new one. The sudo warning means `/etc/hosts`
+still has the old name on the `127.0.1.1` line.
 
 ### Testing screens/windows from a script
 `pkill -f '<pattern>'` also matches the shell running the command (its command line
@@ -509,7 +680,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 
 ---
 
-## 12. File map
+## 14. File map
 
 | Path | What |
 |---|---|
@@ -521,18 +692,20 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/rofi/config.rasi` | rofi behavior, uses theme "edge" |
 | `.local/share/rofi/themes/edge.rasi` | sharp sidebar theme with match counter |
 | `.config/dunst/dunstrc` | notification look + icons |
-| `.config/eww/eww.yuck` | widgets: calendar, osd, dashboard, powermenu |
+| `.config/eww/eww.yuck` | widgets: desktop clock / stats+calendar / music, calendar popup, osd, dashboard, powermenu |
 | `.config/eww/eww.scss` | widget styling |
 | `.config/eww/scripts/osd.sh` | change volume/brightness + show popup |
-| `.config/eww/scripts/desktop.sh` | open the desktop clock + music widgets and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
+| `.config/eww/scripts/desktop.sh` | open the desktop widgets (clock, stats + calendar, music) and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
 | `.local/bin/showoff` | terminal show-off workspace (`Alt+Shift+i`, or `showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing, cava visualizer (`.config/cava/showoff.conf`). Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
 | `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` (the cover is drawn with `kitty +kitten icat`, so the music pane only works in kitty) |
-| `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
+| `.config/btop/btop.conf`, `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
+| `.config/i3/layouts/showoff.json` | pane layout of the show-off workspace |
+| `.config/cava/showoff.conf` | cava look in the show-off workspace |
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock, logout, suspend, reboot, shutdown |
 | `.local/bin/lock` | blurred-wallpaper i3lock (`--prepare` = only build image) |
-| `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors |
+| `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
 | `.config/flameshot/flameshot.ini` | screenshot colors + save path |
 | `.config/autorandr/{both,docked,mobile}/` | monitor profiles (machine-specific) |
@@ -542,12 +715,12 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/gtk-3.0/settings.ini`, `gtk.css` | GTK3 theme/icons + Mocha colors |
 | `.config/gtk-4.0/settings.ini`, `gtk.css` | GTK4/libadwaita theme + Mocha colors |
 | `.profile` | `TERMINAL=kitty`, `NEWT_COLORS_FILE`, `~/.local/bin` in PATH |
-| `.bash_aliases` | `dot`, `y`, `monitor`, editor shortcuts |
+| `.bash_aliases` | `dot`, `y`, `monitor`, editor shortcuts, the prompt (`PS1`), non-bold `LS_COLORS` |
 | `wallpapers/pexels-frostroomhead-17807337.jpg` | wallpaper (Pexels) |
 
 ---
 
-## 13. Color palette
+## 15. Color palette
 
 Catppuccin **Mocha**, used everywhere:
 
@@ -568,7 +741,7 @@ Catppuccin **Mocha**, used everywhere:
 
 ---
 
-## 14. Day-to-day: saving changes to this repo
+## 16. Day-to-day: saving changes to this repo
 
 ```bash
 dot status                       # changed tracked files
