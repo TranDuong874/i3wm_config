@@ -525,7 +525,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/osd.sh` | change volume/brightness + show popup |
 | `.config/eww/scripts/desktop.sh` | open the desktop clock + music widgets and push them behind windows (eww's `:stacking "bg"` doesn't work for unmanaged windows on i3, so it calls `XLowerWindow` via python ctypes) |
 | `.local/bin/showoff` | terminal show-off workspace (`Alt+Shift+i`, or `showoff` → ws 10, `showoff 3` → ws 3): clock, fastfetch, btop, now playing, cava visualizer (`.config/cava/showoff.conf`). Layout in `.config/i3/layouts/showoff.json`, panes matched by `kitty --name` |
-| `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` |
+| `.local/bin/termclock`, `.local/bin/nowplaying` | the clock and music panes used by `showoff` (the cover is drawn with `kitty +kitten icat`, so the music pane only works in kitty) |
 | `.config/btop/themes/catppuccin_mocha.theme`, `.config/fastfetch/config.jsonc` | Mocha colors for btop / fastfetch |
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |

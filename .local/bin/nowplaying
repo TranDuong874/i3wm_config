@@ -1,25 +1,51 @@
 #!/usr/bin/env bash
-# Now-playing pane: title, artist, progress bar (show-off workspace).
+# Now-playing pane for the show-off workspace: album cover (kitty icat) + title,
+# artist, progress bar. Covers are shared with the eww widget cache.
 tput civis; trap 'tput cnorm; exit' INT TERM
+redraw=1; trap 'redraw=1' WINCH
 M='\e[38;2;203;166;247m'; T='\e[38;2;205;214;244m'; D='\e[38;2;108;112;134m'; S='\e[38;2;69;71;90m'; R='\e[0m'
-center(){ local s="$1" plain="$2"; printf '%*s%b\n' $(( (cols - ${#plain}) / 2 )) '' "$s"; }
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/eww/covers"; mkdir -p "$cache"
+last_art=""
+
+cover_path() {  # artUrl -> local file (download once)
+  case "$1" in
+    file://*) echo "${1#file://}" ;;
+    http*) local f="$cache/$(printf '%s' "$1" | md5sum | cut -c1-16).jpg"
+           [ -s "$f" ] || curl -fsSL --max-time 10 -o "$f" "$1" || return
+           echo "$f" ;;
+  esac
+}
+at() { printf '\e[%d;%dH\e[K' "$1" "$2"; }   # move cursor, clear rest of line
+
 while :; do
   cols=$(tput cols); lines=$(tput lines)
-  meta=$(playerctl metadata --format '{{status}}|{{title}}|{{artist}}|{{duration(position)}}|{{duration(mpris:length)}}|{{position*100/mpris:length}}' 2>/dev/null)
-  printf '\e[H\e[2J'
-  for ((i=0; i<(lines-6)/2; i++)); do echo; done
+  meta=$(playerctl metadata --format '{{status}}|{{title}}|{{artist}}|{{duration(position)}}|{{duration(mpris:length)}}|{{position*100/mpris:length}}|{{mpris:artUrl}}' 2>/dev/null)
+  IFS='|' read -r st title artist pos len pct art <<<"$meta"
+
+  # cover box: square-ish, full pane height minus a 1-row margin
+  ih=$(( lines - 2 )); iw=$(( ih * 2 )); tx=$(( iw + 6 ))
+  if [ "$redraw" = 1 ] || [ "$art" != "$last_art" ]; then
+    printf '\e[H\e[2J'
+    kitty +kitten icat --clear --silent 2>/dev/null
+    f=$(cover_path "$art")
+    [ -n "$f" ] && [ -s "$f" ] && kitty +kitten icat --silent --stdin=no --place "${iw}x${ih}@2x1" "$f" 2>/dev/null
+    last_art="$art"; redraw=0
+  fi
+
+  top=$(( (lines - 5) / 2 + 1 ))
   if [ -z "$meta" ]; then
-    center "${D}󰝛  nothing playing${R}" "󰝛  nothing playing"
+    at $top $tx; printf "%b" "${D}󰝛  nothing playing${R}"
+    for r in 1 2 3 4; do at $((top+r)) $tx; done
   else
-    IFS='|' read -r st title artist pos len pct <<<"$meta"
     icon="󰏤"; [ "$st" = Playing ] && icon="󰎈"
-    w=$(( cols * 6 / 10 )); f=$(( ${pct%.*} * w / 100 ))
-    bar="$(printf '━%.0s' $(seq 1 $f))"; rest="$(printf '─%.0s' $(seq 1 $((w-f))))"; ((f==0)) && bar=""; ((w-f==0)) && rest=""
-    center "${M}${icon}${R}  ${T}${title}${R}" "${icon}  ${title}"
-    center "${D}${artist}${R}" "$artist"
-    echo
-    center "${M}${bar}${S}${rest}${R}" "$bar$rest"
-    center "${D}${pos} / ${len}${R}" "$pos / $len"
+    w=$(( cols - tx - 2 )); ((w<10)) && w=10
+    f=$(( ${pct%.*} * w / 100 )); ((f>w)) && f=$w
+    bar=$(printf "%${f}s" ""); bar=${bar// /━}; rest=$(printf "%$((w-f))s" ""); rest=${rest// /─}
+    at $top       $tx; printf "%b" "${M}${icon}${R}  ${T}${title:0:$((w-3))}${R}"
+    at $((top+1)) $tx; printf "%b" "${D}${artist:0:$w}${R}"
+    at $((top+2)) $tx
+    at $((top+3)) $tx; printf "%b" "${M}${bar}${S}${rest}${R}"
+    at $((top+4)) $tx; printf "%b" "${D}${pos} / ${len}${R}"
   fi
   sleep 1
 done
