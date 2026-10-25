@@ -1,25 +1,107 @@
 #!/usr/bin/env bash
-# Lock screen: blurred wallpaper tinted with Catppuccin base (#1e1e2e).
-# Used by xss-lock (suspend / loginctl lock-session) and the power menu.
+# GNOME-style lock screen (Catppuccin Mocha) on top of a blurred wallpaper:
+#   clock + date, round avatar (~/.face if present), username, password box.
+# While typing, mauve bars flicker inside the box (i3lock never shows the characters).
+#
 #   lock            lock now
-#   lock --prepare  only (re)build the cached image for the current screen size
+#   lock --prepare  only (re)build the cached background for the current screen layout
+#
+# Needs i3lock-color (~/.local/bin/i3lock-color, built from source, see README).
+# Falls back to plain i3lock if it's missing.
+# Used by xss-lock (suspend / loginctl lock-session) and the power menu.
 
 WALL="$HOME/wallpapers/pexels-frostroomhead-17807337.jpg"
-size=$(xdpyinfo | awk '/dimensions:/{print $2}')          # e.g. 1920x1080 or 3840x1080
-IMG="${XDG_CACHE_HOME:-$HOME/.cache}/lockscreen-$size.png"
+FACE="$HOME/.face"
+ICONFONT="$HOME/.local/share/fonts/JetBrainsMonoNerd/JetBrainsMonoNerdFont-Regular.ttf"
+FONT="Ubuntu Sans"
 
-if [ -f "$WALL" ] && { [ ! -f "$IMG" ] || [ "$WALL" -nt "$IMG" ]; }; then
+# whole X screen size, and the primary monitor geometry (widgets go there)
+root=$(xdpyinfo | awk '/dimensions:/{print $2}')                       # e.g. 3840x1080
+prim=$(xrandr --query | awk '/ connected primary/{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+x[0-9]+\+/){print $i; exit}}')
+[ -z "$prim" ] && prim=$(xrandr --query | awk '/ connected/{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+x[0-9]+\+/){print $i; exit}}')
+IFS='x+' read -r PW PH PX PY <<<"$prim"
+cx=$(( PX + PW / 2 )); cy=$(( PY + PH / 2 ))
+
+# layout (pixels, relative to the primary monitor's center)
+AV_Y=$(( cy - 10 ));  AV_R=56            # avatar circle
+BOX_W=320; BOX_H=44
+BOX_X=$(( cx - BOX_W / 2 )); BOX_Y=$(( cy + 110 ))
+
+IMG="${XDG_CACHE_HOME:-$HOME/.cache}/lockscreen-v2-${root}-${prim}.png"
+
+build() {
   mkdir -p "$(dirname "$IMG")"
-  # shrink + blur + enlarge = fast strong blur, then darken toward #1e1e2e
-  convert "$WALL" -resize "${size}^" -gravity center -extent "$size" \
+  local tmp; tmp=$(mktemp -d)
+  # 1) blurred, darkened wallpaper covering the whole X screen
+  convert "$WALL" -resize "${root}^" -gravity center -extent "$root" \
           -scale 10% -blur 0x2 -scale 1000% \
-          -fill '#1e1e2e' -colorize 45% "$IMG"
+          -fill '#1e1e2e' -colorize 45% "$tmp/bg.png"
+  # 2) avatar: ~/.face cut into a circle, or a user icon on a surface-colored circle
+  local d=$(( AV_R * 2 ))
+  if [ -s "$FACE" ]; then
+    convert "$FACE" -resize "${d}x${d}^" -gravity center -extent "${d}x${d}" \
+      \( -size "${d}x${d}" xc:none -fill white -draw "circle $AV_R,$AV_R $AV_R,0" \) \
+      -compose CopyOpacity -composite "$tmp/av.png"
+  else
+    convert -size "${d}x${d}" xc:none -fill '#313244' -draw "circle $AV_R,$AV_R $AV_R,0" \
+      -font "$ICONFONT" -pointsize 56 -fill '#cdd6f4' -gravity center -annotate +0+0 $'' \
+      "$tmp/av.png"
+  fi
+  # mauve ring around the avatar
+  convert "$tmp/av.png" -fill none -stroke '#cba6f7' -strokewidth 3 \
+    -draw "circle $AV_R,$AV_R $AV_R,2" "$tmp/av.png"
+  # 3) compose avatar + password box onto the background
+  convert "$tmp/bg.png" \
+    "$tmp/av.png" -geometry "+$(( cx - AV_R ))+$(( AV_Y - AV_R ))" -composite \
+    -fill '#1e1e2ecc' -stroke '#45475a' -strokewidth 2 \
+    -draw "rectangle $BOX_X,$BOX_Y $(( BOX_X + BOX_W )),$(( BOX_Y + BOX_H ))" \
+    "$IMG"
+  rm -rf "$tmp"
+}
+
+if [ -f "$WALL" ] && { [ ! -f "$IMG" ] || [ "$WALL" -nt "$IMG" ] || [ "$0" -nt "$IMG" ] || \
+                       { [ -s "$FACE" ] && [ "$FACE" -nt "$IMG" ]; }; }; then
+  build
 fi
 
 [ "$1" = "--prepare" ] && exit 0
 
-if [ -f "$IMG" ]; then
+I3LOCK_COLOR=$(command -v i3lock-color || echo "$HOME/.local/bin/i3lock-color")
+if [ ! -x "$I3LOCK_COLOR" ]; then
+  # plain i3lock: just the background
   exec i3lock --nofork --ignore-empty-password --show-failed-attempts --image="$IMG"
-else
-  exec i3lock --nofork --ignore-empty-password --show-failed-attempts --color=1e1e2e
 fi
+
+# i3lock-color multiplies every position/size by dpi/96 (Xft.dpi, else the X screen's
+# real DPI), so divide ours by the same factor to land where the background has them.
+DPI=$(xrdb -query 2>/dev/null | awk '/^Xft.dpi:/{printf "%d", $2}')
+[ -z "$DPI" ] && DPI=$(xdpyinfo | awk '/resolution:/{split($2,r,"x"); print r[2]; exit}')
+[ -z "$DPI" ] || [ "$DPI" -le 0 ] && DPI=96
+s() { echo $(( $1 * 96 / DPI )); }
+
+T='cdd6f4ff'; DIM='a6adc8ff'; MAUVE='cba6f7ff'; RED='f38ba8ff'; BLUE='89b4faff'; NONE='00000000'
+exec "$I3LOCK_COLOR" --nofork --ignore-empty-password \
+  --image="$IMG" \
+  --pass-media-keys --pass-volume-keys --pass-screen-keys \
+  \
+  --clock --time-str="%H:%M" --date-str="%A, %d %B" \
+  --time-font="$FONT" --date-font="$FONT" --greeter-font="$FONT" \
+  --verif-font="$FONT" --wrong-font="$FONT" --layout-font="$FONT" \
+  --time-size=96 --date-size=22 --greeter-size=22 --verif-size=15 --wrong-size=15 \
+  --time-color=$T --date-color=$DIM --greeter-color=$T \
+  --time-pos="$(s $cx):$(s $(( cy - 190 )))" --date-pos="$(s $cx):$(s $(( cy - 145 )))" --force-clock \
+  \
+  --greeter-text="$USER" --greeter-pos="$(s $cx):$(s $(( cy + 82 )))" \
+  \
+  --bar-indicator --bar-orientation=horizontal --bar-direction=2 \
+  --bar-pos="$(s $(( BOX_X + 10 ))):$(s $(( BOX_Y + BOX_H / 2 + 8 )))" \
+  --bar-total-width=$(s $(( BOX_W - 20 ))) --bar-max-height=$(s $(( (BOX_H - 14) / 2 ))) --bar-base-width=2 \
+  --bar-count=40 --bar-step=6 --bar-periodic-step=4 \
+  --bar-color=$NONE --keyhl-color=$MAUVE --bshl-color=$RED \
+  --ringver-color=$BLUE --ringwrong-color=$RED \
+  \
+  --noinput-text="" --lock-text="" --lockfailed-text="lock failed" \
+  --verif-text="checking…" --wrong-text="wrong password" \
+  --verif-color=$DIM --wrong-color=$RED \
+  --verif-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 30 )))" --wrong-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 30 )))" \
+  --show-failed-attempts --modif-pos="$(s $cx):$(s $(( BOX_Y + BOX_H + 56 )))" --modif-color=$DIM

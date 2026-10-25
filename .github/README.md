@@ -22,7 +22,7 @@ I hit the first time (they are all collected in [Troubleshooting](#13-troublesho
 | File manager (terminal) | yazi |
 | Screenshots | flameshot |
 | Monitor layouts | autorandr |
-| Lock screen | i3lock + xss-lock (blurred wallpaper) |
+| Lock screen | i3lock-color (built from source) + xss-lock: GNOME-style clock, avatar, username, password box |
 | Wi-Fi TUI | nmtui (themed through newt colors) |
 | GTK apps | Yaru-magenta-dark + Mocha color overrides |
 
@@ -35,7 +35,7 @@ I hit the first time (they are all collected in [Troubleshooting](#13-troublesho
 3. [Permissions (brightness keys)](#3-permissions-brightness-keys)
 4. [Fonts](#4-fonts)
 5. [Clone the dotfiles onto the new machine](#5-clone-the-dotfiles-onto-the-new-machine)
-6. [Build and install eww](#6-build-and-install-eww)
+6. [Build and install eww (and i3lock-color)](#6-build-and-install-eww-and-i3lock-color)
 7. [Things that are NOT in git (run once)](#7-things-that-are-not-in-git-run-once)
 8. [Machine-specific values you must check](#8-machine-specific-values-you-must-check)
 9. [First login and checking everything works](#9-first-login-and-checking-everything-works)
@@ -192,7 +192,7 @@ folder exists at login** — it exists after checkout, so just log out/in once.
 
 ---
 
-## 6. Build and install eww
+## 6. Build and install eww (and i3lock-color)
 
 eww has **no prebuilt Linux binary** — it must be compiled. Build only the X11 backend:
 
@@ -206,6 +206,33 @@ eww --version     # prints "eww 0.5.0 ..." even for v0.6.0 — that's just a sta
 
 Takes about 2–3 minutes. If it fails with missing `gtk+-3.0` / `pkg-config` errors,
 the build packages from step 2 are missing.
+
+### i3lock-color (the GNOME-style lock screen)
+
+Plain `i3lock` can only show an image and a green circle. **i3lock-color** (a drop-in
+fork) adds the clock, date, username and custom colors. Not in Ubuntu's repos → build it:
+
+```bash
+sudo apt install -y autoconf automake libpam0g-dev libcairo2-dev libfontconfig1-dev \
+  libxcb-composite0-dev libev-dev libx11-xcb-dev libxcb-xkb-dev libxcb-xinerama0-dev \
+  libxcb-randr0-dev libxcb-image0-dev libxcb-util0-dev libxcb-xrm-dev \
+  libxkbcommon-dev libxkbcommon-x11-dev libjpeg-dev libgif-dev
+
+git clone https://github.com/Raymo111/i3lock-color.git ~/src/i3lock-color
+cd ~/src/i3lock-color && git checkout 2.13.c.5
+autoreconf -fi && mkdir -p build && cd build
+../configure --prefix=/usr --sysconfdir=/etc && make -j"$(nproc)"
+install -m755 i3lock ~/.local/bin/i3lock-color      # NOT over /usr/bin/i3lock
+i3lock-color --version
+```
+
+- It's installed as `~/.local/bin/i3lock-color`, so the apt `i3lock` stays untouched as a
+  fallback (`~/.local/bin/lock` uses plain i3lock if i3lock-color is missing).
+- No `sudo make install` needed: it uses the PAM service `/etc/pam.d/i3lock`, which the
+  `i3lock` apt package already installed.
+- Test it **without locking yourself out** in a nested X server:
+  `Xephyr :2 -screen 1920x1080 -dpi 96 & DISPLAY=:2 ~/.local/bin/lock` (close the Xephyr
+  window to end it).
 
 ---
 
@@ -330,7 +357,7 @@ Replace `eDP` / `DP-1-0` with your names from `xrandr`. Notes:
 | `notify-send test hello` | Mocha notification with icon, top-right |
 | `Alt+n` | yazi with icons and Mocha colors |
 | Touchpad | tap = click, two-finger scroll in "natural" direction |
-| `loginctl lock-session` | blurred wallpaper lock screen |
+| `Alt+Shift+e` → `l` | lock screen: clock, date, avatar, username, password box (bars flicker while typing, red "wrong password") |
 | `Alt+p` → `b` / `l` / `e` | monitor layouts switch; bar + wallpaper redraw; notification |
 
 Validate the i3 config any time with:
@@ -640,6 +667,20 @@ adding it (or if it crashed) nothing listens. The power menu now runs
 `~/.local/bin/lock` directly. Check the suspend lock: `pgrep -a xss-lock`; start it
 without re-login: `setsid xss-lock --transfer-sleep-lock -- ~/.local/bin/lock &`.
 
+### Lock screen: green circle instead of the GNOME-style layout
+`~/.local/bin/i3lock-color` is missing, so `lock` fell back to plain i3lock → build it
+([step 6](#i3lock-color-the-gnome-style-lock-screen)).
+
+### Lock screen: text and bars in the wrong place
+i3lock-color multiplies every position by `dpi / 96` (from `Xft.dpi`, else the X
+screen's physical DPI). `lock` divides its coordinates by the same factor, so it lines up
+with the background on any DPI. Check what X reports: `xdpyinfo | grep resolution`.
+
+### Why no dots for typed characters?
+i3lock/i3lock-color never draw the typed characters (security design). Typing makes
+mauve bars flicker inside the box; backspace flashes red; checking = blue; wrong = red
+text under the box.
+
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
 `~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
@@ -711,7 +752,8 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/eww/scripts/cava.sh`, `.config/cava/eww.conf` | audio visualizer bars in the desktop music card (cava raw output → JSON list → eww vertical progress bars; shown only while playing) |
 | `.config/eww/scripts/cover.sh` | downloads album art for the music widget into `~/.cache/eww/covers` |
 | `.local/bin/powermenu` | toggle power menu / run lock (calls `~/.local/bin/lock` directly), logout, suspend, reboot, shutdown |
-| `.local/bin/lock` | blurred-wallpaper i3lock (`--prepare` = only build image) |
+| `.local/bin/lock` | GNOME-style lock: builds blurred wallpaper + avatar + password box with ImageMagick (`--prepare` = only build it, cached in `~/.cache/lockscreen-v2-*.png`), then runs `i3lock-color` with clock, date, username, typing bars |
+| `~/.face` (not tracked) | optional square photo used as the lock screen avatar |
 | `.config/kitty/kitty.conf` | terminal font, padding, Mocha colors, blinking block cursor |
 | `.config/yazi/theme.toml`, `package.toml` | yazi uses the catppuccin-mocha flavor |
 | `.config/flameshot/flameshot.ini` | screenshot colors + save path |
