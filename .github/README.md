@@ -657,8 +657,17 @@ flip: once LAN was 20100 vs Wi-Fi 20600 (LAN used), later Wi-Fi was 600 vs LAN 2
   nmcli connection modify netplan-enx00e04c155b17 ipv4.route-metric 100 ipv6.route-metric 100
   nmcli connection up netplan-enx00e04c155b17
   ```
-The polybar network module only shows **wireless** (`interface-type = wireless`), so it
-displays the Wi-Fi name even when traffic goes over LAN.
+The bar's network module (`~/.config/polybar/scripts/network.sh`) shows whichever
+connection the traffic really uses: `󰈀 LAN`, `󰖩 <Wi-Fi name>`, or `󰖪 offline`.
+(The old built-in module watched Wi-Fi only, so it said "offline" while LAN worked.)
+
+### nmtui: "Connection 'Wired connection 1' is not available … device has no carrier"
+This laptop has **two USB Ethernet adapters**: Realtek `enx00e04c155b17` (the one with
+the cable, connection `netplan-enx00e04c155b17`) and ASIX `enx6c1ff71c0048`.
+"Wired connection 1" belongs to the ASIX one; *no carrier* = no cable in it. Activate the
+Realtek entry instead (it's usually already active), or remove the unused profile:
+`nmcli connection delete "Wired connection 1"` (NetworkManager recreates it if a cable
+is ever plugged into that adapter). Check: `nmcli device`.
 
 ### Power menu "lock" does nothing
 `loginctl lock-session` only *asks* for a lock; `xss-lock` is the program that answers by
@@ -751,6 +760,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/autostart/picom.desktop` | disables Ubuntu's duplicate picom autostart |
 | `.config/polybar/config.ini` | bar modules, colors, click actions |
 | `.config/polybar/launch.sh` | starts one bar per monitor |
+| `.config/polybar/scripts/network.sh` | network label: LAN / Wi-Fi name / offline, based on the route traffic actually uses |
 | `.config/rofi/config.rasi` | rofi behavior, uses theme "edge" |
 | `.local/share/rofi/themes/edge.rasi` | sharp sidebar theme with match counter |
 | `.config/dunst/dunstrc` | notification look + icons |
