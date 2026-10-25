@@ -101,6 +101,14 @@ calendar {
   border-left: 3px solid $mauve;
   padding: 12px;
 }
+.desk-stats {
+  background-color: rgba(24, 24, 37, 0.85);
+  border: 1px solid $surface0;
+  border-left: 3px solid $mauve;
+  padding: 14px;
+}
+.desk-stats-title { color: $mauve; }
+
 .cover {
   background-color: $surface0;
   background-size: cover;
