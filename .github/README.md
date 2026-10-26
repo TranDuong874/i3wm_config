@@ -87,7 +87,7 @@ sudo apt install -y \
   libnotify-bin imagemagick x11-utils x11-xserver-utils xinput \
   git curl unzip fontconfig fonts-dejavu fonts-ubuntu btop fastfetch toilet \
   xserver-xephyr \
-  yaru-theme-gtk yaru-theme-icon gnome-themes-extra \
+  yaru-theme-gtk yaru-theme-icon gnome-themes-extra ibus ibus-unikey \
   build-essential pkg-config libgtk-3-dev libdbusmenu-gtk3-dev
 ```
 
@@ -102,6 +102,7 @@ What each group is for:
 | `cava` | audio visualizer (desktop music card + show-off workspace) |
 | `btop fastfetch toilet` | show-off workspace: system monitor, system info, big clock font |
 | `fonts-ubuntu` | **Ubuntu Sans**, the lock screen font (preinstalled on Ubuntu desktop) |
+| `ibus ibus-unikey` | typing Vietnamese (switch with `Super+Space` or the `EN`/`VI` label in the bar) |
 | `xserver-xephyr` | test the lock screen in a window without locking yourself out (optional) |
 | `blueman network-manager-gnome` | bluetooth + wifi tray icons (`nm-applet`) |
 | `libnotify-bin` | `notify-send` (used by scripts) |
@@ -253,6 +254,12 @@ gsettings set org.gnome.desktop.interface icon-theme Yaru-magenta-dark
 
 # yazi: download the Catppuccin Mocha flavor listed in ~/.config/yazi/package.toml
 yazi.ya pkg install
+
+# typing Vietnamese: IBus with English + Unikey (needs: sudo apt install ibus-unikey)
+gsettings set org.freedesktop.ibus.general preload-engines "['xkb:us::eng', 'Unikey']"
+gsettings set org.freedesktop.ibus.general engines-order "['xkb:us::eng', 'Unikey']"
+gsettings set org.freedesktop.ibus.general use-system-keyboard-layout true   # keep layout "us"
+gsettings set org.freedesktop.ibus.panel show-icon-on-systray false          # bar shows EN/VI instead
 
 # lock screen image (also rebuilt automatically when needed)
 ~/.local/bin/lock --prepare
@@ -523,6 +530,7 @@ tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, 
 | `Alt+Tab` | window switcher | `rofi -show window` |
 | `Alt+Shift+d` | dashboard (toggle) | `eww open --toggle dashboard` |
 | `Alt+m` | Spotify app: open, or jump to it | `~/.local/bin/music` |
+| `Super+Space` | input method English ↔ Vietnamese (Unikey) | IBus hotkey (gsettings `org.freedesktop.ibus.general.hotkey triggers`) |
 | `Alt+Shift+i` | show-off terminal workspace (builds it on ws 10, then jumps there / back) | `~/.local/bin/showoff` |
 | `Alt+Ctrl+i` | close the show-off workspace (all its panes) | `~/.local/bin/showoff close` |
 | `Alt+Shift+w` | desktop clock, stats, music (toggle) | `~/.config/eww/scripts/desktop.sh toggle` |
@@ -580,6 +588,7 @@ tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, 
 | Clock (left) | calendar popup |
 | Volume (right) | pavucontrol |
 | Network (left) | nmtui in kitty |
+| `󰌌 EN` / `󰌌 VI` (left) | switch input method English ↔ Vietnamese (Unikey) |
 | Brightness (scroll) | change brightness |
 | 󰕮 (left) | dashboard |
 | 󰄀 (left / right) | flameshot area / screen to clipboard |
@@ -780,6 +789,12 @@ Two causes, both fixed:
 
 Check a window really has transparency: `xwininfo -id <id> | grep Depth` → 32.
 
+### IBus tray menu doesn't close / clicking opens more and more menus
+IBus's own tray icon menu misbehaves under i3. It's hidden
+(`gsettings set org.freedesktop.ibus.panel show-icon-on-systray false`); use the `EN`/`VI`
+label in the bar or `Super+Space`. Clear stuck menus with `ibus restart`. If switching
+prints `Execute setxkbmap failed`, set `use-system-keyboard-layout true` (see §7).
+
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
 `~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
@@ -846,6 +861,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/autostart/picom.desktop` | disables Ubuntu's duplicate picom autostart |
 | `.config/polybar/config.ini` | bar modules, colors, click actions |
 | `.config/polybar/launch.sh` | starts one bar per monitor |
+| `.config/polybar/scripts/ibus.sh` | input-method label `EN`/`VI` (IBus); `ibus.sh toggle` switches |
 | `.config/polybar/scripts/network.sh` | network label: LAN / Wi-Fi name / offline, based on the route traffic actually uses |
 | `.config/rofi/config.rasi` | rofi behavior, uses theme "edge" |
 | `.local/share/rofi/themes/edge.rasi` | sharp sidebar theme with match counter |
