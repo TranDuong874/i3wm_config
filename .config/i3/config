@@ -216,7 +216,7 @@ bindsym $mod+r mode "resize"
 # }
 
 exec_always --no-startup-id ~/.config/polybar/launch.sh
-exec --no-startup-id eww daemon
+# eww daemon is started by desktop.sh, after picom (needed for transparency)
 exec --no-startup-id ~/.config/eww/scripts/desktop.sh
 bindsym $mod+Shift+w exec --no-startup-id ~/.config/eww/scripts/desktop.sh toggle
 bindsym $mod+m exec --no-startup-id ~/.local/bin/music

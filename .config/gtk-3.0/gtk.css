@@ -10,7 +10,8 @@
 @define-color borders                   #313244;
 @define-color unfocused_borders         #313244;
 
-window, .background { background-color: @theme_bg_color; color: @theme_fg_color; }
+/* app windows get the Mocha base color; eww windows (classed by window name) stay transparent */
+window:not(.desktop-clock):not(.desktop-music):not(.desktop-stats):not(.calendar):not(.osd):not(.dashboard):not(.powermenu), .background:not(.desktop-clock):not(.desktop-music):not(.desktop-stats):not(.calendar):not(.osd):not(.dashboard):not(.powermenu) { background-color: @theme_bg_color; color: @theme_fg_color; }
 headerbar, .titlebar { background: #11111b; border-color: #313244; box-shadow: none; }
-treeview.view, textview text, iconview, list, .view { background-color: @theme_base_color; color: @theme_text_color; }
+treeview.view, textview text, iconview, list, .view:not(calendar) { background-color: @theme_base_color; color: @theme_text_color; }
 *:selected, .view:selected { background-color: @theme_selected_bg_color; color: @theme_selected_fg_color; }

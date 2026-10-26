@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# (Re)open the desktop widgets (big clock, music, system stats) once the eww daemon is up,
+# Start the eww daemon (after picom) and (re)open the desktop widgets,
 # then push them to the bottom of the X stack so windows cover them.
 # Used by i3 at login and by autorandr after a monitor switch.
 # "toggle": close them if open, otherwise open
@@ -7,6 +7,11 @@ if [ "$1" = toggle ] && eww active-windows 2>/dev/null | grep -q "^desktop-clock
   eww close desktop-clock desktop-music desktop-stats; exit 0
 fi
 
+# Wait for the compositor first: if the eww DAEMON starts before picom, none of its
+# windows ever get transparency (empty areas show as solid dark boxes). Max ~10 s.
+for _ in $(seq 40); do pgrep -x picom >/dev/null && break; sleep 0.25; done
+sleep 1
+eww ping >/dev/null 2>&1 || eww daemon
 for _ in $(seq 20); do eww ping >/dev/null 2>&1 && break; sleep 0.25; done
 eww close desktop-clock desktop-music desktop-stats >/dev/null 2>&1
 eww open-many desktop-clock desktop-music desktop-stats

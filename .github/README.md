@@ -604,8 +604,8 @@ tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, 
 ### Things started automatically at login (i3 config)
 
 `dex` (XDG autostart), `xss-lock` → `~/.local/bin/lock`, `nm-applet`, `blueman-applet`,
-polybar (`exec_always launch.sh`), `picom`, `dunst`, `eww daemon`, desktop widgets
-(`~/.config/eww/scripts/desktop.sh`), `feh` wallpaper (`exec_always`),
+polybar (`exec_always launch.sh`), `picom`, `dunst`, desktop widgets + eww daemon
+(`~/.config/eww/scripts/desktop.sh`, waits for picom), `feh` wallpaper (`exec_always`),
 `autorandr --change`, touchpad `xinput` settings (`exec_always`).
 
 ---
@@ -762,6 +762,21 @@ next matching window. `showoff close` removes leftover placeholders; then `Alt+S
 `launch --bias` doesn't exist in kitty 0.32 (Ubuntu 24.04). That's why the ncspot key strip
 is its own i3 pane instead of a kitty split.
 
+### Desktop widgets have solid dark boxes instead of being see-through
+Two causes, both fixed:
+1. **GTK user CSS painting over eww.** `~/.config/gtk-3.0/gtk.css` is loaded by *every*
+   GTK3 app — eww too — and it beats eww's own styles. A blanket
+   `window, .background { background-color: … }` rule therefore filled the transparent
+   parts of the widgets. The rule now skips eww's windows, which carry their window name
+   as a class: `window:not(.desktop-clock):not(.desktop-music)…`. **If you add a new eww
+   window, add its name to that `:not(...)` list** (and to `.view:not(calendar)` if it
+   contains a calendar). It only showed up after a reboot because the already-running
+   eww daemon hadn't loaded the new gtk.css yet.
+2. **eww starting before picom.** `desktop.sh` now waits for picom, then starts the eww
+   daemon itself (i3 no longer runs `eww daemon` directly).
+
+Check a window really has transparency: `xwininfo -id <id> | grep Depth` → 32.
+
 ### Desktop widgets cover my windows
 eww's `:stacking "bg"` doesn't work for unmanaged windows on i3. Run
 `~/.config/eww/scripts/desktop.sh` (it lowers them with `XLowerWindow`).
@@ -856,7 +871,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/autorandr/docked/block` | don't auto-select "docked" |
 | `.config/autorandr/postswitch` | after a layout switch: bar, wallpaper, lock image, notify |
 | `.config/newt/colors` | nmtui colors |
-| `.config/gtk-3.0/settings.ini`, `gtk.css` | GTK3 theme/icons + Mocha colors |
+| `.config/gtk-3.0/settings.ini`, `gtk.css` | GTK3 theme/icons + Mocha colors (rules exclude eww windows by class) |
 | `.config/gtk-4.0/settings.ini`, `gtk.css` | GTK4/libadwaita theme + Mocha colors |
 | `.profile` | `TERMINAL=kitty`, `NEWT_COLORS_FILE`, `~/.local/bin` in PATH |
 | `.bash_aliases` | `dot`, `y`, `monitor`, editor shortcuts, the prompt (`PS1`), non-bold `LS_COLORS` |
