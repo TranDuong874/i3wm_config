@@ -81,13 +81,13 @@
   :stacking "bg"
   :wm-ignore true
   (box :orientation "v" :space-evenly false :valign "end"
-  ;; idle card: nothing playing -> click to open ncspot (Alt+m)
+  ;; idle card: nothing playing -> click to open the player (Alt+m)
   (eventbox :cursor "pointer" :visible {music_title == ""} :onclick "~/.local/bin/music &"
     (box :class "desk-music idle" :orientation "h" :space-evenly false :spacing 14
       (label :class "idle-icon" :text "󰎈")
       (box :orientation "v" :space-evenly false :valign "center"
         (label :class "music-title dim-title" :halign "start" :text "nothing playing")
-        (label :class "music-artist" :halign "start" :text "open ncspot  ·  Alt+m"))))
+        (label :class "music-artist" :halign "start" :text "open Spotify  ·  Alt+m"))))
   (box :class "desk-music" :orientation "h" :space-evenly false :spacing 16
        :visible {music_title != ""}
     (box :class "cover" :width 104 :height 104

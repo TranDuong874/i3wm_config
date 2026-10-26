@@ -1,11 +1,9 @@
 #!/usr/bin/env bash
-# Alt+m / idle music card: focus ncspot if it's open, otherwise start it in kitty.
-# Falls back to the official Spotify app if ncspot isn't installed.
-# ncspot config: ~/snap/ncspot/common/.config/config.toml (snap-private, tracked in git)
-if i3-msg -t get_tree | grep -q '"instance":"ncspot"'; then
-  i3-msg -q '[instance="^ncspot$"] focus'
-elif command -v ncspot >/dev/null; then
-  setsid kitty --name ncspot --title ncspot ncspot >/dev/null 2>&1 &
+# Alt+m / idle music card: focus the Spotify app if it's open, otherwise start it.
+# (Terminal clients like ncspot/spotatui can't play on this account: Spotify refuses
+#  audio keys to librespot-based players — see README "Spotify".)
+if i3-msg -t get_tree | grep -q '"class":"Spotify"'; then
+  i3-msg -q '[class="Spotify"] focus'
 else
   setsid spotify >/dev/null 2>&1 &
 fi
