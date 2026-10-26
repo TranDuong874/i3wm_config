@@ -233,7 +233,7 @@ exec --no-startup-id dunst
 # Display layouts (autorandr profiles in ~/.config/autorandr)
 #   auto = pick by what's plugged in, docked = external only,
 #   laptop = built-in only, both = laptop left + external right
-exec --no-startup-id autorandr --change
+exec --no-startup-id ~/.local/bin/display-init
 set $mode_display Display: (a)uto  (e)xternal  (l)aptop  (b)oth
 mode "$mode_display" {
     bindsym a exec --no-startup-id autorandr --change --force, mode "default"

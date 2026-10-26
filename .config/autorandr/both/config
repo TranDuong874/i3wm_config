@@ -11,7 +11,6 @@ off
 output DP-1-4
 off
 output eDP
-crtc 1
 mode 1920x1080
 pos 0x0
 rate 165.00
@@ -24,7 +23,6 @@ x-prop-underscan off
 x-prop-underscan_hborder 0
 x-prop-underscan_vborder 0
 output DP-1-0
-crtc 0
 mode 1920x1080
 pos 1920x0
 primary

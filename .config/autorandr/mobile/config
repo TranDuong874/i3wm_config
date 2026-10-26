@@ -13,7 +13,6 @@ off
 output DP-1-4
 off
 output eDP
-crtc 0
 mode 1920x1080
 pos 0x0
 primary

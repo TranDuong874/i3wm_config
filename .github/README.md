@@ -606,7 +606,7 @@ tranduong@Legion-S7-15ACH6:~/projects/foo  main     ← green user, grey @host, 
 `dex` (XDG autostart), `xss-lock` → `~/.local/bin/lock`, `nm-applet`, `blueman-applet`,
 polybar (`exec_always launch.sh`), `picom`, `dunst`, desktop widgets + eww daemon
 (`~/.config/eww/scripts/desktop.sh`, waits for picom), `feh` wallpaper (`exec_always`),
-`autorandr --change`, touchpad `xinput` settings (`exec_always`).
+`~/.local/bin/display-init` (autorandr, retried while the NVIDIA port comes up), touchpad `xinput` settings (`exec_always`).
 
 ---
 
@@ -641,6 +641,19 @@ sets both, using the touchpad's exact name:
 xinput set-prop "<touchpad name>" "libinput Tapping Enabled" 1
 xinput set-prop "<touchpad name>" "libinput Natural Scrolling Enabled" 1   # 0 = traditional
 ```
+
+### Wrong layout at login / `Alt+p` → `b` fails with "cannot use crtc"
+Two separate problems, both fixed:
+- **Pinned display pipes.** `autorandr --save` records a `crtc N` per output, but the
+  numbering changes between boots on this AMD + NVIDIA laptop, so loading failed with
+  `xrandr: output DP-1-0 cannot use crtc 0x4e`. The `crtc` lines were removed from all
+  profiles — **remove them again after every `autorandr --save`**:
+  `sed -i '/^crtc /d' ~/.config/autorandr/*/config`.
+- **NVIDIA port not ready at login.** The external port (driven by the NVIDIA card) can
+  appear ~10 s after boot, so a single early `autorandr --change` only saw the laptop
+  screen and chose "mobile". i3 now runs `~/.local/bin/display-init`, which re-checks a
+  few times over ~15 s. (Ubuntu's `autorandr.service` may show `start-limit-hit` from
+  boot — harmless.)
 
 ### `Alt+p` display switching does nothing
 The old version hard-coded an output name (`DP-1-2`) but the monitor appeared as
@@ -869,6 +882,7 @@ contains the pattern) and kills it. Use `pkill -x <name>` or a unique `--class`.
 | `.config/flameshot/flameshot.ini` | screenshot colors + save path |
 | `.config/autorandr/{both,docked,mobile}/` | monitor profiles (machine-specific) |
 | `.config/autorandr/docked/block` | don't auto-select "docked" |
+| `.local/bin/display-init` | login: pick the monitor layout, retrying for ~15 s |
 | `.config/autorandr/postswitch` | after a layout switch: bar, wallpaper, lock image, notify |
 | `.config/newt/colors` | nmtui colors |
 | `.config/gtk-3.0/settings.ini`, `gtk.css` | GTK3 theme/icons + Mocha colors (rules exclude eww windows by class) |

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Pick the right monitor layout at login (i3 exec). The NVIDIA card that drives the
+# external ports can finish initialising ~10 s after boot, so a single early
+# `autorandr --change` sees only the laptop screen. Re-check a few times; autorandr only
+# switches (and runs postswitch) when the detected profile differs from the current one.
+for wait in 0 3 5 7; do
+  sleep "$wait"
+  autorandr --change >/dev/null 2>&1
+done
